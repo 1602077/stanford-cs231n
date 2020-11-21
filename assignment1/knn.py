@@ -16,12 +16,11 @@
 import random
 import numpy as np
 from cs231n.data_utils import load_CIFAR10
-import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('agg')
+import  matplotlib.pyplot as plt
 import pdb
 
-# This is a bit of magic to make matplotlib figures appear inline in the notebook
-# rather than in a new window.
-#get_ipython().run_line_magic('matplotlib', 'inline')
 plt.rcParams['figure.figsize'] = (10.0, 8.0) # set default size of plots
 plt.rcParams['image.interpolation'] = 'nearest'
 plt.rcParams['image.cmap'] = 'gray'
@@ -48,17 +47,18 @@ print('Test labels shape: ', y_test.shape)
 classes = ['plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
 num_classes = len(classes)
 samples_per_class = 7
-#for y, cls in enumerate(classes):
- #   idxs = np.flatnonzero(y_train == y)
-  #  idxs = np.random.choice(idxs, samples_per_class, replace=False)
-   # for i, idx in enumerate(idxs):
-    #    plt_idx = i * num_classes + y + 1
-     #   plt.subplot(samples_per_class, num_classes, plt_idx)
-      #  plt.imshow(X_train[idx].astype('uint8'))
-       # plt.axis('off')
-        #if i == 0:
-         #   plt.title(cls)
-#plt.show()
+plt.figure()
+for y, cls in enumerate(classes):
+    idxs = np.flatnonzero(y_train == y)
+    idxs = np.random.choice(idxs, samples_per_class, replace=False)
+    for i, idx in enumerate(idxs):
+        plt_idx = i * num_classes + y + 1
+        plt.subplot(samples_per_class, num_classes, plt_idx)
+        plt.imshow(X_train[idx].astype('uint8'))
+        plt.axis('off')
+        if i == 0:
+            plt.title(cls)
+plt.savefig('ass1_sampleclasses.png')
 
 # Subsample the data for more efficient code execution in this exercise
 num_training = 5000
@@ -77,8 +77,6 @@ X_test = np.reshape(X_test, (X_test.shape[0], -1))
 print(X_train.shape, X_test.shape)
 
 #pdb.set_trace()
-# In[ ]:
-
 
 from cs231n.classifiers import KNearestNeighbor
 
@@ -90,14 +88,10 @@ classifier.train(X_train, y_train)
 
 
 # We would now like to classify the test data with the kNN classifier. Recall that we can break down this process into two steps: 
-# 
 # 1. First we must compute the distances between all test examples and all train examples. 
 # 2. Given these distances, for each test example we find the k nearest examples and have them vote for the label
-# 
 # Lets begin with computing the distance matrix between all training and test examples. For example, if there are **Ntr** training examples and **Nte** test examples, this stage should result in a **Nte x Ntr** matrix where each element (i,j) is the distance between the i-th test and j-th train example.
-# 
 # **Note: For the three distance computations that we require you to implement in this notebook, you may not use the np.linalg.norm() function that numpy provides.**
-# 
 # First, open `cs231n/classifiers/k_nearest_neighbor.py` and implement the function `compute_distances_two_loops` that uses a (very inefficient) double loop over all pairs of (test, train) examples and computes the distance matrix one element at a time.
 
 
@@ -105,82 +99,41 @@ classifier.train(X_train, y_train)
 # compute_distances_two_loops.
 
 # Test your implementation:
-#dists = classifier.compute_distances_two_loops(X_test)
+dists = classifier.compute_distances_two_loops(X_test)
 #print(dists.shape)
-
-#pdb.set_trace()
-# In[ ]:
-
 
 # We can visualize the distance matrix: each row is a single test example and
 # its distances to training examples
-#plt.imshow(dists, interpolation='none')
-#plt.show()
-
-
-# **Inline Question 1** 
-# 
-# Notice the structured patterns in the distance matrix, where some rows or columns are visible brighter. (Note that with the default color scheme black indicates low distances while white indicates high distances.)
-# 
-# - What in the data is the cause behind the distinctly bright rows?
-# - What causes the columns?
-# 
-# $\color{blue}{\textit Your Answer:}$ *fill this in.*
-# 
-# 
+plt.figure()
+plt.imshow(dists, interpolation='none')
+plt.savefig('ass1_twoloopimg.png')
 
 # Now implement the function predict_labels and run the code below:
 # We use k = 1 (which is Nearest Neighbor).
-#y_test_pred = classifier.predict_labels(dists, k=1)
+y_test_pred = classifier.predict_labels(dists, k=1)
 
 # Compute and print the fraction of correctly predicted examples
-#num_correct = np.sum(y_test_pred == y_test)
-#accuracy = float(num_correct) / num_test
-#print('Got %d / %d correct => accuracy: %f' % (num_correct, num_test, accuracy))
+num_correct = np.sum(y_test_pred == y_test)
+accuracy = float(num_correct) / num_test
+print('Got %d / %d correct => accuracy: %f' % (num_correct, num_test, accuracy))
 #pdb.set_trace()
 ################################################################################
 # ACCURACY FOR K=1: 0.274
 ################################################################################
 
-#y_test_pred = classifier.predict_labels(dists, k=5)
-#num_correct = np.sum(y_test_pred == y_test)
-#accuracy = float(num_correct) / num_test
-#print('Got %d / %d correct => accuracy: %f' % (num_correct, num_test, accuracy))
+y_test_pred = classifier.predict_labels(dists, k=5)
+num_correct = np.sum(y_test_pred == y_test)
+accuracy = float(num_correct) / num_test
+print('Got %d / %d correct => accuracy: %f' % (num_correct, num_test, accuracy))
 #pdb.set_trace()
 ################################################################################
 # ACCURACY FOR K=5: 0.29n
 ################################################################################
 
-# **Inline Question 2**
-# 
-# We can also use other distance metrics such as L1 distance.
-# For pixel values $p_{ij}^{(k)}$ at location $(i,j)$ of some image $I_k$, 
-# 
-# the mean $\mu$ across all pixels over all images is $$\mu=\frac{1}{nhw}\sum_{k=1}^n\sum_{i=1}^{h}\sum_{j=1}^{w}p_{ij}^{(k)}$$
-# And the pixel-wise mean $\mu_{ij}$ across all images is 
-# $$\mu_{ij}=\frac{1}{n}\sum_{k=1}^np_{ij}^{(k)}.$$
-# The general standard deviation $\sigma$ and pixel-wise standard deviation $\sigma_{ij}$ is defined similarly.
-# 
-# Which of the following preprocessing steps will not change the performance of a Nearest Neighbor classifier that uses L1 distance? Select all that apply.
-# 1. Subtracting the mean $\mu$ ($\tilde{p}_{ij}^{(k)}=p_{ij}^{(k)}-\mu$.)
-# 2. Subtracting the per pixel mean $\mu_{ij}$  ($\tilde{p}_{ij}^{(k)}=p_{ij}^{(k)}-\mu_{ij}$.)
-# 3. Subtracting the mean $\mu$ and dividing by the standard deviation $\sigma$.
-# 4. Subtracting the pixel-wise mean $\mu_{ij}$ and dividing by the pixel-wise standard deviation $\sigma_{ij}$.
-# 5. Rotating the coordinate axes of the data.
-# 
-# $\color{blue}{\textit Your Answer:}$
-# 
-# 
-# $\color{blue}{\textit Your Explanation:}$
-# 
-
-# In[ ]:
-
-
 # Now lets speed up distance matrix computation by using partial vectorization
 # with one loop. Implement the function compute_distances_one_loop and run the
 # code below:
-#dists_one = classifier.compute_distances_one_loop(X_test)
+dists_one = classifier.compute_distances_one_loop(X_test)
 
 # To ensure that our vectorized implementation is correct, we make sure that it
 # agrees with the naive implementation. There are many ways to decide whether
@@ -188,34 +141,25 @@ classifier.train(X_train, y_train)
 # you haven't seen it before, the Frobenius norm of two matrices is the square
 # root of the squared sum of differences of all elements; in other words, reshape
 # the matrices into vectors and compute the Euclidean distance between them.
-#difference = np.linalg.norm(dists - dists_one, ord='fro')
-#print('One loop difference was: %f' % (difference, ))
-#if difference < 0.001:
-#    print('Good! The distance matrices are the same')
-#else:
-#    print('Uh-oh! The distance matrices are different')
-
-
-# :
-
+difference = np.linalg.norm(dists - dists_one, ord='fro')
+print('One loop difference was: %f' % (difference, ))
+if difference < 0.001:
+    print('Good! The distance matrices are the same')
+else:
+    print('Uh-oh! The distance matrices are different')
 
 # Now implement the fully vectorized version inside compute_distances_no_loops
 # and run the code
-#dists_two = classifier.compute_distances_no_loops(X_test)
+dists_two = classifier.compute_distances_no_loops(X_test)
 
 # check that the distance matrix agrees with the one we computed before:
-#difference = np.linalg.norm(dists - dists_two, ord='fro')
-#print('No loop difference was: %f' % (difference, ))
-#if difference < 0.001:
-#    print('Good! The distance matrices are the same')
-#else:
-#    print('Uh-oh! The distance matrices are different')
+difference = np.linalg.norm(dists - dists_two, ord='fro')
+print('No loop difference was: %f' % (difference, ))
+if difference < 0.001:
+    print('Good! The distance matrices are the same')
+else:
+    print('Uh-oh! The distance matrices are different')
 
-
-# In[ ]:
-
-
-# Let's compare how fast the implementations are
 def time_function(f, *args):
     """
     Call a function f with args and return the time (in seconds) that it took to execute.
@@ -226,25 +170,20 @@ def time_function(f, *args):
     toc = time.time()
     return toc - tic
 
-#two_loop_time = time_function(classifier.compute_distances_two_loops, X_test)
-#print('Two loop version took %f seconds' % two_loop_time)
+two_loop_time = time_function(classifier.compute_distances_two_loops, X_test)
+print('Two loop version took %f seconds' % two_loop_time)
 # 58.226291s
-#one_loop_time = time_function(classifier.compute_distances_one_loop, X_test)
-#print('One loop version took %f seconds' % one_loop_time)
+one_loop_time = time_function(classifier.compute_distances_one_loop, X_test)
+print('One loop version took %f seconds' % one_loop_time)
 # 41.128370s 
-#no_loop_time = time_function(classifier.compute_distances_no_loops, X_test)
-#print('No loop version took %f seconds' % no_loop_time)
+no_loop_time = time_function(classifier.compute_distances_no_loops, X_test)
+print('No loop version took %f seconds' % no_loop_time)
 # 0.568998s
-# You should see significantly faster performance with the fully vectorized implementation!
-
 
 # ################################################################################
 # ### Cross-validation
 # ################################################################################
 # We have implemented the k-Nearest Neighbor classifier but we set the value k = 5 arbitrarily. We will now determine the best value of this hyperparameter with cross-validation.
-
-# In[ ]:
-
 
 num_folds = 5
 k_choices = [1, 3, 5, 8, 10, 12, 15, 20, 50, 100]
@@ -303,12 +242,10 @@ for k in k_choices:
 for k in sorted(k_to_accuracies):
     for accuracy in k_to_accuracies[k]:
         print('k = %d, accuracy = %f' % (k, accuracy))
-pdb.set_trace()
-
-# In[ ]:
-
+#pdb.set_trace()
 
 # plot the raw observations
+plt.figure()
 for k in k_choices:
     accuracies = k_to_accuracies[k]
     plt.scatter([k] * len(accuracies), accuracies)
@@ -320,16 +257,12 @@ plt.errorbar(k_choices, accuracies_mean, yerr=accuracies_std)
 plt.title('Cross-validation on k')
 plt.xlabel('k')
 plt.ylabel('Cross-validation accuracy')
-plt.show()
-
-
-# In[ ]:
-
+plt.savefig('ass1_k_crossvalid.png')
 
 # Based on the cross-validation results above, choose the best value for k,   
 # retrain the classifier using all the training data, and test it on the test
 # data. You should be able to get above 28% accuracy on the test data.
-best_k = 1
+best_k = 10
 
 classifier = KNearestNeighbor()
 classifier.train(X_train, y_train)
@@ -340,19 +273,3 @@ num_correct = np.sum(y_test_pred == y_test)
 accuracy = float(num_correct) / num_test
 print('Got %d / %d correct => accuracy: %f' % (num_correct, num_test, accuracy))
 
-
-# **Inline Question 3**
-# 
-# Which of the following statements about $k$-Nearest Neighbor ($k$-NN) are true in a classification setting, and for all $k$? Select all that apply.
-# 1. The decision boundary of the k-NN classifier is linear.
-# 2. The training error of a 1-NN will always be lower than that of 5-NN.
-# 3. The test error of a 1-NN will always be lower than that of a 5-NN.
-# 4. The time needed to classify a test example with the k-NN classifier grows with the size of the training set.
-# 5. None of the above.
-# 
-# $\color{blue}{\textit Your Answer:}$
-# 
-# 
-# $\color{blue}{\textit Your Explanation:}$
-# 
-# 
