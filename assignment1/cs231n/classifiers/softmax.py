@@ -37,13 +37,12 @@ def softmax_loss_naive(W, X, y, reg):
     num_class = W.shape[1]
 
     for i in range(num_train):
-        tmp_f = scores[i] - np.max(scores[i])
-        softmax = np.exp(tmp_f) / np.sum(np.exp(tmp_f))
+        tmp = scores[i] - np.max(scores[i])
+        softmax = np.exp(tmp) / np.sum(np.exp(tmp))
         loss -= np.log(softmax[y[i]])
-
         for j in range(num_class):
             dW[:,j] += X[i]*softmax[j]
-            dW[:,y[i]] -= X[i]
+        dW[:,y[i]] -= X[i]
     loss /= num_train
     dW /= num_train
 
@@ -72,10 +71,10 @@ def softmax_loss_vectorized(W, X, y, reg):
     num_train = X.shape[0]
     scores = X.dot(W)
     #remove numerical instability
-    scores = scores - np.max(scores, axis=1, keepdims = True)
+    scores -= np.max(scores, axis=1, keepdims = True)
 
-    expScores_sum = np.exp(scores).sum(axis=1, keepdims=True)
-    softmax_matrix = np.exp(scores) / expScores_sum
+    scores_sum = np.exp(scores).sum(axis=1, keepdims=True)
+    softmax_matrix = np.exp(scores) / scores_sum
     loss = np.sum(-np.log(softmax_matrix[np.arange(num_train), y]))
 
     softmax_matrix[np.arange(num_train), y] -= 1
@@ -84,6 +83,6 @@ def softmax_loss_vectorized(W, X, y, reg):
     loss /= num_train
     dW /= num_train
     loss += reg*np.sum(W*W)
-    dW += 2*reg*W
+    dW += 2*W*reg
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     return loss, dW
