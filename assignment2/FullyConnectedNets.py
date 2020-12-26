@@ -192,17 +192,18 @@ y = np.random.randint(C, size=N)
 std = 1e-3
 model = TwoLayerNet(input_dim=D, hidden_dim=H, num_classes=C, weight_scale=std)
 
-print('Testing initialization ... ')
+print('\n****   TWO-LAYER NN - MODULAR  ****')
+print('Testing initialization ...')
 W1_std = abs(model.params['W1'].std() - std)
-b1 = model.params['b1']
 W2_std = abs(model.params['W2'].std() - std)
+b1 = model.params['b1']
 b2 = model.params['b2']
 assert W1_std < std / 10, 'First layer weights do not seem right'
 assert np.all(b1 == 0), 'First layer biases do not seem right'
 assert W2_std < std / 10, 'Second layer weights do not seem right'
 assert np.all(b2 == 0), 'Second layer biases do not seem right'
 
-print('Testing test-time forward pass ... ')
+print('\nTesting test-time forward pass')
 model.params['W1'] = np.linspace(-0.7, 0.3, num=D*H).reshape(D, H)
 model.params['b1'] = np.linspace(-0.1, 0.9, num=H)
 model.params['W2'] = np.linspace(-0.3, 0.4, num=H*C).reshape(H, C)
@@ -216,7 +217,7 @@ correct_scores = np.asarray(
 scores_diff = np.abs(scores - correct_scores).sum()
 assert scores_diff < 1e-6, 'Problem with test-time forward pass'
 
-print('Testing training loss (no regularization)')
+print('\nTesting training loss (no regularization)')
 y = np.asarray([0, 5, 1])
 loss, grads = model.loss(X, y)
 correct_loss = 3.4702243556
@@ -241,12 +242,7 @@ for reg in [0.0, 0.7]:
 
 # # Solver
 # In the previous assignment, the logic for training models was coupled to the models themselves. Following a more modular design, for this assignment we have split the logic for training models into a separate class.
-# 
 # Open the file `cs231n/solver.py` and read through it to familiarize yourself with the API. After doing so, use a `Solver` instance to train a `TwoLayerNet` that achieves at least `50%` accuracy on the validation set.
-
-# In[ ]:
-
-
 model = TwoLayerNet()
 solver = None
 
