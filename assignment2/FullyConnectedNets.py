@@ -42,10 +42,6 @@
 # In addition to implementing fully-connected networks of arbitrary depth, we will also explore different update rules for optimization, and introduce Dropout as a regularizer and Batch/Layer Normalization as a tool to more efficiently optimize deep networks.
 #   
 
-# In[ ]:
-
-
-# As usual, a bit of setup
 from __future__ import print_function
 import time
 import numpy as np
@@ -55,39 +51,17 @@ from cs231n.data_utils import get_CIFAR10_data
 from cs231n.gradient_check import eval_numerical_gradient, eval_numerical_gradient_array
 from cs231n.solver import Solver
 
-get_ipython().magic('matplotlib inline')
-plt.rcParams['figure.figsize'] = (10.0, 8.0) # set default size of plots
-plt.rcParams['image.interpolation'] = 'nearest'
-plt.rcParams['image.cmap'] = 'gray'
-
-# for auto-reloading external modules
-# see http://stackoverflow.com/questions/1907993/autoreload-of-modules-in-ipython
-get_ipython().magic('load_ext autoreload')
-get_ipython().magic('autoreload 2')
-
 def rel_error(x, y):
   """ returns relative error """
   return np.max(np.abs(x - y) / (np.maximum(1e-8, np.abs(x) + np.abs(y))))
-
-
-# In[ ]:
-
-
-# Load the (preprocessed) CIFAR10 data.
 
 data = get_CIFAR10_data()
 for k, v in list(data.items()):
   print(('%s: ' % k, v.shape))
 
-
 # # Affine layer: forward
 # Open the file `cs231n/layers.py` and implement the `affine_forward` function.
-# 
 # Once you are done you can test your implementaion by running the following:
-
-# In[ ]:
-
-
 # Test the affine_forward function
 
 num_inputs = 2
@@ -112,10 +86,6 @@ print('difference: ', rel_error(out, correct_out))
 
 # # Affine layer: backward
 # Now implement the `affine_backward` function and test your implementation using numeric gradient checking.
-
-# In[ ]:
-
-
 # Test the affine_backward function
 np.random.seed(231)
 x = np.random.randn(10, 2, 3)
