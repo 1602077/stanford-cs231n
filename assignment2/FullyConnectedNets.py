@@ -274,7 +274,7 @@ best_val = 0
 #print('Best validaton acc achieved in training:', best_val)
 lr, reg, hidden =  8.069800e-04, 1.774396e-04, 80
 model = TwoLayerNet(hidden_dim = hidden, reg = reg)
-solver = Solver(model, data, update_rule='sgd', optim_config={'learning_rate': lr}, lr_decay=0.95, num_epochs=10, batch_size=100, print_every=-1, verbose=False)
+solver = Solver(model, data, update_rule='sgd', optim_config={'learning_rate': lr}, lr_decay=0.95, num_epochs=20, batch_size=200, print_every=-1, verbose=False)
 solver.train()
 val_acc = solver.best_val_acc
 print('Best validation accuracy:', val_acc) # 53.3%
