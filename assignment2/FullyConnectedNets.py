@@ -3,7 +3,6 @@
 
 # # Fully-Connected Neural Nets
 # In the previous homework you implemented a fully-connected two-layer neural network on CIFAR-10. The implementation was simple but not very modular since the loss and gradient were computed in a single monolithic function. This is manageable for a simple two-layer network, but would become impractical as we move to bigger models. Ideally we want to build networks using a more modular design so that we can implement different layer types in isolation and then snap them together into models with different architectures.
-
 # In this exercise we will implement fully-connected networks using a more modular approach. For each layer we will implement a `forward` and a `backward` function. The `forward` function will receive inputs, weights, and other parameters and will return both an output and a `cache` object storing data needed for the backward pass, like this:
 # 
 # ```python
@@ -38,9 +37,7 @@
 # ```
 # 
 # After implementing a bunch of layers this way, we will be able to easily combine them to build classifiers with different architectures.
-# 
 # In addition to implementing fully-connected networks of arbitrary depth, we will also explore different update rules for optimization, and introduce Dropout as a regularizer and Batch/Layer Normalization as a tool to more efficiently optimize deep networks.
-#   
 
 from __future__ import print_function
 import time
@@ -80,9 +77,8 @@ correct_out = np.array([[ 1.49834967,  1.70660132,  1.91485297],
                         [ 3.25553199,  3.5141327,   3.77273342]])
 
 # Compare your output with ours. The error should be around e-9 or less.
-print('Testing affine_forward function:')
-print('difference: ', rel_error(out, correct_out))
-
+print('\n****     Testing affine_forward function     ****')
+print('difference:',  rel_error(out, correct_out))
 
 # # Affine layer: backward
 # Now implement the `affine_backward` function and test your implementation using numeric gradient checking.
@@ -101,7 +97,7 @@ _, cache = affine_forward(x, w, b)
 dx, dw, db = affine_backward(dout, cache)
 
 # The error should be around e-10 or less
-print('Testing affine_backward function:')
+print('\n****     Testing affine_backward function   ****')
 print('dx error: ', rel_error(dx_num, dx))
 print('dw error: ', rel_error(dw_num, dw))
 print('db error: ', rel_error(db_num, db))
@@ -109,62 +105,35 @@ print('db error: ', rel_error(db_num, db))
 
 # # ReLU activation: forward
 # Implement the forward pass for the ReLU activation function in the `relu_forward` function and test your implementation using the following:
-
-# In[ ]:
-
-
 # Test the relu_forward function
 
 x = np.linspace(-0.5, 0.5, num=12).reshape(3, 4)
-
 out, _ = relu_forward(x)
 correct_out = np.array([[ 0.,          0.,          0.,          0.,        ],
                         [ 0.,          0.,          0.04545455,  0.13636364,],
                         [ 0.22727273,  0.31818182,  0.40909091,  0.5,       ]])
 
 # Compare your output with ours. The error should be on the order of e-8
-print('Testing relu_forward function:')
+print('\n****     Testing relu_forward function   ****')
 print('difference: ', rel_error(out, correct_out))
 
 
 # # ReLU activation: backward
 # Now implement the backward pass for the ReLU activation function in the `relu_backward` function and test your implementation using numeric gradient checking:
-
-# In[ ]:
-
-
 np.random.seed(231)
 x = np.random.randn(10, 10)
 dout = np.random.randn(*x.shape)
-
 dx_num = eval_numerical_gradient_array(lambda x: relu_forward(x)[0], x, dout)
-
 _, cache = relu_forward(x)
 dx = relu_backward(dout, cache)
 
 # The error should be on the order of e-12
-print('Testing relu_backward function:')
+print('\n****   Testing relu_backward function  ****')
 print('dx error: ', rel_error(dx_num, dx))
-
-
-# ## Inline Question 1: 
-# 
-# We've only asked you to implement ReLU, but there are a number of different activation functions that one could use in neural networks, each with its pros and cons. In particular, an issue commonly seen with activation functions is getting zero (or close to zero) gradient flow during backpropagation. Which of the following activation functions have this problem? If you consider these functions in the one dimensional case, what types of input would lead to this behaviour?
-# 1. Sigmoid
-# 2. ReLU
-# 3. Leaky ReLU
-# 
-# ## Answer:
-# [FILL THIS IN]
-# 
 
 # # "Sandwich" layers
 # There are some common patterns of layers that are frequently used in neural nets. For example, affine layers are frequently followed by a ReLU nonlinearity. To make these common patterns easy, we define several convenience layers in the file `cs231n/layer_utils.py`.
-# 
 # For now take a look at the `affine_relu_forward` and `affine_relu_backward` functions, and run the following to numerically gradient check the backward pass:
-
-# In[ ]:
-
 
 from cs231n.layer_utils import affine_relu_forward, affine_relu_backward
 np.random.seed(231)
@@ -181,20 +150,14 @@ dw_num = eval_numerical_gradient_array(lambda w: affine_relu_forward(x, w, b)[0]
 db_num = eval_numerical_gradient_array(lambda b: affine_relu_forward(x, w, b)[0], b, dout)
 
 # Relative error should be around e-10 or less
-print('Testing affine_relu_forward and affine_relu_backward:')
+print('\n****   Testing affine_relu_forward and affine_relu_backward    ****')
 print('dx error: ', rel_error(dx_num, dx))
 print('dw error: ', rel_error(dw_num, dw))
 print('db error: ', rel_error(db_num, db))
 
-
 # # Loss layers: Softmax and SVM
 # You implemented these loss functions in the last assignment, so we'll give them to you for free here. You should still make sure you understand how they work by looking at the implementations in `cs231n/layers.py`.
-# 
 # You can make sure that the implementations are correct by running the following:
-
-# In[ ]:
-
-
 np.random.seed(231)
 num_classes, num_inputs = 10, 50
 x = 0.001 * np.random.randn(num_inputs, num_classes)
@@ -204,7 +167,7 @@ dx_num = eval_numerical_gradient(lambda x: svm_loss(x, y)[0], x, verbose=False)
 loss, dx = svm_loss(x, y)
 
 # Test svm_loss function. Loss should be around 9 and dx error should be around the order of e-9
-print('Testing svm_loss:')
+print('\n****   Testing svm_loss    ****')
 print('loss: ', loss)
 print('dx error: ', rel_error(dx_num, dx))
 
@@ -212,18 +175,14 @@ dx_num = eval_numerical_gradient(lambda x: softmax_loss(x, y)[0], x, verbose=Fal
 loss, dx = softmax_loss(x, y)
 
 # Test softmax_loss function. Loss should be close to 2.3 and dx error should be around e-8
-print('\nTesting softmax_loss:')
+print('\n****   Testing softmax_loss    ****')
 print('loss: ', loss)
 print('dx error: ', rel_error(dx_num, dx))
 
 
 # # Two-layer network
 # In the previous assignment you implemented a two-layer neural network in a single monolithic class. Now that you have implemented modular versions of the necessary layers, you will reimplement the two layer network using these modular implementations.
-# 
 # Open the file `cs231n/classifiers/fc_net.py` and complete the implementation of the `TwoLayerNet` class. This class will serve as a model for the other networks you will implement in this assignment, so read through it to make sure you understand the API. You can run the cell below to test your implementation.
-
-# In[ ]:
-
 
 np.random.seed(231)
 N, D, H, C = 3, 5, 50, 7
