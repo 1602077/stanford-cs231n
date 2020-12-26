@@ -42,6 +42,7 @@
 from __future__ import print_function
 import time
 import numpy as np
+import matplotlib; matplotlib.use('agg')
 import matplotlib.pyplot as plt
 from cs231n.classifiers.fc_net import *
 from cs231n.data_utils import get_CIFAR10_data
@@ -203,7 +204,7 @@ assert np.all(b1 == 0), 'First layer biases do not seem right'
 assert W2_std < std / 10, 'Second layer weights do not seem right'
 assert np.all(b2 == 0), 'Second layer biases do not seem right'
 
-print('\nTesting test-time forward pass')
+print('Testing test-time forward pass ....')
 model.params['W1'] = np.linspace(-0.7, 0.3, num=D*H).reshape(D, H)
 model.params['b1'] = np.linspace(-0.1, 0.9, num=H)
 model.params['W2'] = np.linspace(-0.3, 0.4, num=H*C).reshape(H, C)
@@ -217,7 +218,7 @@ correct_scores = np.asarray(
 scores_diff = np.abs(scores - correct_scores).sum()
 assert scores_diff < 1e-6, 'Problem with test-time forward pass'
 
-print('\nTesting training loss (no regularization)')
+print('Testing training loss (no regularization)')
 y = np.asarray([0, 5, 1])
 loss, grads = model.loss(X, y)
 correct_loss = 3.4702243556
@@ -239,12 +240,12 @@ for reg in [0.0, 0.7]:
     grad_num = eval_numerical_gradient(f, model.params[name], verbose=False)
     print('%s relative error: %.2e' % (name, rel_error(grad_num, grads[name])))
 
-
 # # Solver
 # In the previous assignment, the logic for training models was coupled to the models themselves. Following a more modular design, for this assignment we have split the logic for training models into a separate class.
 # Open the file `cs231n/solver.py` and read through it to familiarize yourself with the API. After doing so, use a `Solver` instance to train a `TwoLayerNet` that achieves at least `50%` accuracy on the validation set.
 model = TwoLayerNet()
 solver = None
+best_val = 0
 
 ##############################################################################
 # TODO: Use a Solver instance to train a TwoLayerNet that achieves at least  #
@@ -252,17 +253,35 @@ solver = None
 ##############################################################################
 # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-pass
-
+##############################################################################
+#hyperparameter tuning
+##############################################################################
+#def gen_rand_hyparams(lr_min, lr_max, reg_min, reg_max, h_min, h_max):
+#    lr = 10**np.random.uniform(lr_min, lr_max)
+#    reg = 10**np.random.uniform(reg_min, reg_max)
+#    hidden = np.random.randint(h_min, h_max)
+#    return lr, reg, hidden
+#for _ in range(40):
+#    lr, reg, hidden = gen_rand_hyparams(-3, -5, -3, -5, 78, 82)
+#    model = TwoLayerNet(hidden_dim = hidden, reg=reg)
+#    train_solver = Solver(model, data, update_rule='sgd', optim_config={'learning_rate':lr}, lr_decay=0.95, num_epochs=5,batch_size=200, print_every=-1, verbose=False)
+#    train_solver.train()
+#    val_acc = train_solver.best_val_acc
+#    if best_val < val_acc:
+#        best_val = val_acc
+#        solver = train_solver
+#    print('lr %e; reg %e; hid %d; val accuracy %f' % (lr, reg, hidden, val_acc))
+#print('Best validaton acc achieved in training:', best_val)
+lr, reg, hidden =  8.069800e-04, 1.774396e-04, 80
+model = TwoLayerNet(hidden_dim = hidden, reg = reg)
+solver = Solver(model, data, update_rule='sgd', optim_config={'learning_rate': lr}, lr_decay=0.95, num_epochs=10, batch_size=100, print_every=-1, verbose=False)
+solver.train()
+val_acc = solver.best_val_acc
+print('Best validation accuracy:', val_acc) # 53.3%
 # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 ##############################################################################
 #                             END OF YOUR CODE                               #
 ##############################################################################
-
-
-# In[ ]:
-
-
 # Run this cell to visualize training loss and train / val accuracy
 
 plt.subplot(2, 1, 1)
@@ -278,25 +297,16 @@ plt.plot([0.5] * len(solver.val_acc_history), 'k--')
 plt.xlabel('Epoch')
 plt.legend(loc='lower right')
 plt.gcf().set_size_inches(15, 12)
-plt.show()
-
+plt.savefig('q1_FCNN_LossAccuracy.png')
 
 # # Multilayer network
 # Next you will implement a fully-connected network with an arbitrary number of hidden layers.
-# 
 # Read through the `FullyConnectedNet` class in the file `cs231n/classifiers/fc_net.py`.
-# 
 # Implement the initialization, the forward pass, and the backward pass. For the moment don't worry about implementing dropout or batch/layer normalization; we will add those features soon.
 
 # ## Initial loss and gradient check
-# 
 # As a sanity check, run the following to check the initial loss and to gradient check the network both with and without regularization. Do the initial losses seem reasonable?
-# 
 # For gradient checking, you should expect to see errors around 1e-7 or less.
-
-# In[ ]:
-
-
 np.random.seed(231)
 N, D, H1, H2, C = 2, 15, 20, 30, 10
 X = np.random.randn(N, D)
