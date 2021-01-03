@@ -272,32 +272,35 @@ best_val = 0
 #        solver = train_solver
 #    print('lr %e; reg %e; hid %d; val accuracy %f' % (lr, reg, hidden, val_acc))
 #print('Best validaton acc achieved in training:', best_val)
-lr, reg, hidden =  8.069800e-04, 1.774396e-04, 80
-model = TwoLayerNet(hidden_dim = hidden, reg = reg)
-solver = Solver(model, data, update_rule='sgd', optim_config={'learning_rate': lr}, lr_decay=0.95, num_epochs=20, batch_size=200, print_every=-1, verbose=False)
-solver.train()
-val_acc = solver.best_val_acc
-print('Best validation accuracy:', val_acc) # 53.3%
+
+##      COMMENTED BELOW FOR SPEEDING UP RUN TIME
+#lr, reg, hidden =  8.069800e-04, 1.774396e-04, 80
+#model = TwoLayerNet(hidden_dim = hidden, reg = reg)
+#solver = Solver(model, data, update_rule='sgd', optim_config={'learning_rate': lr}, lr_decay=0.95, num_epochs=20, batch_size=200, print_every=-1, verbose=False)
+#solver.train()
+#val_acc = solver.best_val_acc
+#print('Best validation accuracy:', val_acc) # 53.3%
 # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 ##############################################################################
 #                             END OF YOUR CODE                               #
 ##############################################################################
 # Run this cell to visualize training loss and train / val accuracy
 
-plt.subplot(2, 1, 1)
-plt.title('Training loss')
-plt.plot(solver.loss_history, 'o')
-plt.xlabel('Iteration')
-
-plt.subplot(2, 1, 2)
-plt.title('Accuracy')
-plt.plot(solver.train_acc_history, '-o', label='train')
-plt.plot(solver.val_acc_history, '-o', label='val')
-plt.plot([0.5] * len(solver.val_acc_history), 'k--')
-plt.xlabel('Epoch')
-plt.legend(loc='lower right')
-plt.gcf().set_size_inches(15, 12)
-plt.savefig('q1_FCNN_LossAccuracy.png')
+#plt.subplot(2, 1, 1)
+#plt.title('Training loss')
+#plt.plot(solver.loss_history, 'o')
+#plt.xlabel('Iteration')
+#
+#plt.subplot(2, 1, 2)
+#plt.title('Accuracy')
+#plt.plot(solver.train_acc_history, '-o', label='train')
+#plt.plot(solver.val_acc_history, '-o', label='val')
+#plt.plot([0.5] * len(solver.val_acc_history), 'k--')
+#plt.xlabel('Epoch')
+#plt.legend(loc='lower right')
+#plt.gcf().set_size_inches(15, 12)
+#plt.savefig('q1_FCNN_LossAccuracy.png')
+#####       COMMENTED ABOVE FOR SPEED
 
 # # Multilayer network
 # Next you will implement a fully-connected network with an arbitrary number of hidden layers.
@@ -307,6 +310,7 @@ plt.savefig('q1_FCNN_LossAccuracy.png')
 # ## Initial loss and gradient check
 # As a sanity check, run the following to check the initial loss and to gradient check the network both with and without regularization. Do the initial losses seem reasonable?
 # For gradient checking, you should expect to see errors around 1e-7 or less.
+print('\n****    Multilayer Network    ****')
 np.random.seed(231)
 N, D, H1, H2, C = 2, 15, 20, 30, 10
 X = np.random.randn(N, D)
@@ -314,9 +318,7 @@ y = np.random.randint(C, size=(N,))
 
 for reg in [0, 3.14]:
   print('Running check with reg = ', reg)
-  model = FullyConnectedNet([H1, H2], input_dim=D, num_classes=C,
-                            reg=reg, weight_scale=5e-2, dtype=np.float64)
-
+  model = FullyConnectedNet([H1, H2], input_dim=D, num_classes=C, reg=reg, weight_scale=5e-2, dtype=np.float64)
   loss, grads = model.loss(X, y)
   print('Initial loss: ', loss)
   
@@ -328,15 +330,10 @@ for reg in [0, 3.14]:
     grad_num = eval_numerical_gradient(f, model.params[name], verbose=False, h=1e-5)
     print('%s relative error: %.2e' % (name, rel_error(grad_num, grads[name])))
 
-
 # As another sanity check, make sure you can overfit a small dataset of 50 images. First we will try a three-layer network with 100 units in each hidden layer. In the following cell, tweak the **learning rate** and **weight initialization scale** to overfit and achieve 100% training accuracy within 20 epochs.
-
-# In[ ]:
-
-
 # TODO: Use a three-layer Net to overfit 50 training examples by 
 # tweaking just the learning rate and initialization scale.
-
+print('\n****    Overfitting 3NN Net    ****')
 num_train = 50
 small_data = {
   'X_train': data['X_train'][:num_train],
@@ -345,8 +342,33 @@ small_data = {
   'y_val': data['y_val'],
 }
 
-weight_scale = 1e-2   # Experiment with this!
-learning_rate = 1e-4  # Experiment with this!
+
+#solver = None
+#best_val = 0
+def gen_rand_hyparams(ws_min, ws_max, lr_min, lr_max):
+    ws = 10**np.random.uniform(ws_min, ws_max)
+    lr = 10**np.random.uniform(lr_min, lr_max)
+    return ws, lr
+# HYPERPARAMTER TUNING VIA RANDOM SEARCH
+#for _ in range(40):
+#    weight_scale, learning_rate = gen_rand_hyparams(-1.5, -2.5, -2.5, -3.5)
+#    model = FullyConnectedNet([100, 100], weight_scale=weight_scale, dtype=np.float64)
+#    train_solver = Solver(model, small_data,
+#                print_every=10, num_epochs=20, batch_size=25,
+#                update_rule='sgd',
+#                optim_config={
+#                  'learning_rate': learning_rate,
+#                }, verbose=True
+#         )
+#    train_solver.train()
+#    val_acc = train_solver.best_val_acc
+#    if best_val < val_acc:
+#        best_val = val_acc
+#        solver = train_solver
+#    print('learning_rate %e; weigh_scale %e:' % (learning_rate, weight_scale))
+weight_scale = 2.510677e-02
+learning_rate = 1.969594e-03
+
 model = FullyConnectedNet([100, 100],
               weight_scale=weight_scale, dtype=np.float64)
 solver = Solver(model, small_data,
@@ -362,17 +384,12 @@ plt.plot(solver.loss_history, 'o')
 plt.title('Training loss history')
 plt.xlabel('Iteration')
 plt.ylabel('Training loss')
-plt.show()
-
+plt.savefig('q1_FCNN_3-NN_Loss.png')
 
 # Now try to use a five-layer network with 100 units on each layer to overfit 50 training examples. Again, you will have to adjust the learning rate and weight initialization scale, but you should be able to achieve 100% training accuracy within 20 epochs.
-
-# In[ ]:
-
-
 # TODO: Use a five-layer Net to overfit 50 training examples by 
 # tweaking just the learning rate and initialization scale.
-
+print('\n****   Overfitting 5-NN    **** ')
 num_train = 50
 small_data = {
   'X_train': data['X_train'][:num_train],
@@ -381,8 +398,28 @@ small_data = {
   'y_val': data['y_val'],
 }
 
-learning_rate = 2e-3  # Experiment with this!
-weight_scale = 1e-5   # Experiment with this!
+# HYPERPARAMTER TUNING VIA RANDOM SEARCH
+#for _ in range(40):
+#    weight_scale, learning_rate = gen_rand_hyparams(-1, -3, -2, -4)
+#    model = FullyConnectedNet([100, 100, 100, 100],
+#                weight_scale=weight_scale, dtype=np.float64)
+#    train_solver = Solver(model, small_data,
+#                print_every=10, num_epochs=20, batch_size=25,
+#                update_rule='sgd',
+#                optim_config={
+#                  'learning_rate': learning_rate,
+#                }
+#         )
+#    train_solver.train()
+#    val_acc = train_solver.best_val_acc
+#    if best_val < val_acc:
+#        best_val = val_acc
+#        solver = train_solver
+#    print('learning_rate %e; weigh_scale %e' % (learning_rate, weight_scale))
+
+learning_rate = 4.333198e-03
+weight_scale = 6.793167e-02
+
 model = FullyConnectedNet([100, 100, 100, 100],
                 weight_scale=weight_scale, dtype=np.float64)
 solver = Solver(model, small_data,
@@ -398,15 +435,7 @@ plt.plot(solver.loss_history, 'o')
 plt.title('Training loss history')
 plt.xlabel('Iteration')
 plt.ylabel('Training loss')
-plt.show()
-
-
-# ## Inline Question 2: 
-# Did you notice anything about the comparative difficulty of training the three-layer net vs training the five layer net? In particular, based on your experience, which network seemed more sensitive to the initialization scale? Why do you think that is the case?
-# 
-# ## Answer:
-# [FILL THIS IN]
-# 
+plt.savefig('q1_FCNN_5-NN_Loss.png')
 
 # # Update rules
 # So far we have used vanilla stochastic gradient descent (SGD) as our update rule. More sophisticated update rules can make it easier to train deep networks. We will implement a few of the most commonly used update rules and compare them to vanilla SGD.
@@ -415,9 +444,6 @@ plt.show()
 # Stochastic gradient descent with momentum is a widely used update rule that tends to make deep networks converge faster than vanilla stochastic gradient descent. See the Momentum Update section at http://cs231n.github.io/neural-networks-3/#sgd for more information.
 # 
 # Open the file `cs231n/optim.py` and read the documentation at the top of the file to make sure you understand the API. Implement the SGD+momentum update rule in the function `sgd_momentum` and run the following to check your implementation. You should see errors less than e-8.
-
-# In[ ]:
-
 
 from cs231n.optim import sgd_momentum
 
