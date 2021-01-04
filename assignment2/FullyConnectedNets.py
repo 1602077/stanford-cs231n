@@ -444,7 +444,7 @@ plt.savefig('q1_FCNN_5-NN_Loss.png')
 # Stochastic gradient descent with momentum is a widely used update rule that tends to make deep networks converge faster than vanilla stochastic gradient descent. See the Momentum Update section at http://cs231n.github.io/neural-networks-3/#sgd for more information.
 # 
 # Open the file `cs231n/optim.py` and read the documentation at the top of the file to make sure you understand the API. Implement the SGD+momentum update rule in the function `sgd_momentum` and run the following to check your implementation. You should see errors less than e-8.
-
+print('\n****    SGD MOM IMPLIMENTATION    ****')
 from cs231n.optim import sgd_momentum
 
 N, D = 4, 5
@@ -470,11 +470,7 @@ expected_velocity = np.asarray([
 print('next_w error: ', rel_error(next_w, expected_next_w))
 print('velocity error: ', rel_error(expected_velocity, config['velocity']))
 
-
 # Once you have done so, run the following to train a six-layer network with both SGD and SGD+momentum. You should see the SGD+momentum update rule converge faster.
-
-# In[ ]:
-
 
 num_train = 4000
 small_data = {
@@ -527,24 +523,16 @@ for i in [1, 2, 3]:
   plt.subplot(3, 1, i)
   plt.legend(loc='upper center', ncol=4)
 plt.gcf().set_size_inches(15, 15)
-plt.show()
-
+plt.savefig('q1_FCNN_sgd_v_sgd+mom_comparison.png')
 
 # # RMSProp and Adam
 # RMSProp [1] and Adam [2] are update rules that set per-parameter learning rates by using a running average of the second moments of gradients.
-# 
 # In the file `cs231n/optim.py`, implement the RMSProp update rule in the `rmsprop` function and implement the Adam update rule in the `adam` function, and check your implementations using the tests below.
-# 
 # **NOTE:** Please implement the _complete_ Adam update rule (with the bias correction mechanism), not the first simplified version mentioned in the course notes. 
-# 
 # [1] Tijmen Tieleman and Geoffrey Hinton. "Lecture 6.5-rmsprop: Divide the gradient by a running average of its recent magnitude." COURSERA: Neural Networks for Machine Learning 4 (2012).
-# 
 # [2] Diederik Kingma and Jimmy Ba, "Adam: A Method for Stochastic Optimization", ICLR 2015.
 
-# In[ ]:
-
-
-# Test RMSProp implementation
+print('\n****    RMSProp IMPLEMENTATION    ****')
 from cs231n.optim import rmsprop
 
 N, D = 4, 5
@@ -570,11 +558,7 @@ expected_cache = np.asarray([
 print('next_w error: ', rel_error(expected_next_w, next_w))
 print('cache error: ', rel_error(expected_cache, config['cache']))
 
-
-# In[ ]:
-
-
-# Test Adam implementation
+print('\n****    adam IMPLEMENTATION    ****')
 from cs231n.optim import adam
 
 N, D = 4, 5
@@ -607,11 +591,7 @@ print('next_w error: ', rel_error(expected_next_w, next_w))
 print('v error: ', rel_error(expected_v, config['v']))
 print('m error: ', rel_error(expected_m, config['m']))
 
-
 # Once you have debugged your RMSProp and Adam implementations, run the following to train a pair of deep networks using these new update rules:
-
-# In[ ]:
-
 
 learning_rates = {'rmsprop': 1e-4, 'adam': 1e-3}
 for update_rule in ['adam', 'rmsprop']:
@@ -655,35 +635,13 @@ for i in [1, 2, 3]:
   plt.subplot(3, 1, i)
   plt.legend(loc='upper center', ncol=4)
 plt.gcf().set_size_inches(15, 15)
-plt.show()
+plt.savefig("q1_FCNN_adam_v_RMSprop_comparison.png")
 
-
-# ## Inline Question 3:
-# 
-# AdaGrad, like Adam, is a per-parameter optimization method that uses the following update rule:
-# 
-# ```
-# cache += dw**2
-# w += - learning_rate * dw / (np.sqrt(cache) + eps)
-# ```
-# 
-# John notices that when he was training a network with AdaGrad that the updates became very small, and that his network was learning slowly. Using your knowledge of the AdaGrad update rule, why do you think the updates would become very small? Would Adam have the same issue?
-# 
-# 
-# ## Answer: 
-# [FILL THIS IN]
-# 
-
-# # Train a good model!
 # Train the best fully-connected model that you can on CIFAR-10, storing your best model in the `best_model` variable. We require you to get at least 50% accuracy on the validation set using a fully-connected net.
-# 
 # If you are careful it should be possible to get accuracies above 55%, but we don't require it for this part and won't assign extra credit for doing so. Later in the assignment we will ask you to train the best convolutional network that you can on CIFAR-10, and we would prefer that you spend your effort working on convolutional nets rather than fully-connected nets.
-# 
 # You might find it useful to complete the `BatchNormalization.ipynb` and `Dropout.ipynb` notebooks before completing this part, since those techniques can help you train powerful models.
 
-# In[ ]:
-
-
+print("\n****    BEST MODEL IMPLIMENTATION    ****")
 best_model = None
 ################################################################################
 # TODO: Train the best FullyConnectedNet that you can on CIFAR-10. You might   #
@@ -699,12 +657,8 @@ pass
 #                              END OF YOUR CODE                                #
 ################################################################################
 
-
 # # Test your model!
 # Run your best model on the validation and test sets. You should achieve above 50% accuracy on the validation set.
-
-# In[ ]:
-
 
 y_test_pred = np.argmax(best_model.loss(data['X_test']), axis=1)
 y_val_pred = np.argmax(best_model.loss(data['X_val']), axis=1)
