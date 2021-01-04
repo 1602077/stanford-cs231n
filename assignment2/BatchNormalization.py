@@ -4,20 +4,12 @@
 # # Batch Normalization
 # One way to make deep networks easier to train is to use more sophisticated optimization procedures such as SGD+momentum, RMSProp, or Adam. Another strategy is to change the architecture of the network to make it easier to train. 
 # One idea along these lines is batch normalization which was proposed by [1] in 2015.
-# 
 # The idea is relatively straightforward. Machine learning methods tend to work better when their input data consists of uncorrelated features with zero mean and unit variance. When training a neural network, we can preprocess the data before feeding it to the network to explicitly decorrelate its features; this will ensure that the first layer of the network sees data that follows a nice distribution. However, even if we preprocess the input data, the activations at deeper layers of the network will likely no longer be decorrelated and will no longer have zero mean or unit variance since they are output from earlier layers in the network. Even worse, during the training process the distribution of features at each layer of the network will shift as the weights of each layer are updated.
-# 
 # The authors of [1] hypothesize that the shifting distribution of features inside deep neural networks may make training deep networks more difficult. To overcome this problem, [1] proposes to insert batch normalization layers into the network. At training time, a batch normalization layer uses a minibatch of data to estimate the mean and standard deviation of each feature. These estimated means and standard deviations are then used to center and normalize the features of the minibatch. A running average of these means and standard deviations is kept during training, and at test time these running averages are used to center and normalize features.
-# 
 # It is possible that this normalization strategy could reduce the representational power of the network, since it may sometimes be optimal for certain layers to have features that are not zero-mean or unit variance. To this end, the batch normalization layer includes learnable shift and scale parameters for each feature dimension.
-# 
 # [1] [Sergey Ioffe and Christian Szegedy, "Batch Normalization: Accelerating Deep Network Training by Reducing
 # Internal Covariate Shift", ICML 2015.](https://arxiv.org/abs/1502.03167)
 
-# In[ ]:
-
-
-# As usual, a bit of setup
 import time
 import numpy as np
 import matplotlib.pyplot as plt
@@ -26,15 +18,9 @@ from cs231n.data_utils import get_CIFAR10_data
 from cs231n.gradient_check import eval_numerical_gradient, eval_numerical_gradient_array
 from cs231n.solver import Solver
 
-%matplotlib inline
 plt.rcParams['figure.figsize'] = (10.0, 8.0) # set default size of plots
 plt.rcParams['image.interpolation'] = 'nearest'
 plt.rcParams['image.cmap'] = 'gray'
-
-# for auto-reloading external modules
-# see http://stackoverflow.com/questions/1907993/autoreload-of-modules-in-ipython
-%load_ext autoreload
-%autoreload 2
 
 def rel_error(x, y):
     """ returns relative error """
@@ -45,22 +31,15 @@ def print_mean_std(x,axis=0):
     print('  stds:  ', x.std(axis=axis))
     print() 
 
-# In[ ]:
-
-
-# Load the (preprocessed) CIFAR10 data.
 data = get_CIFAR10_data()
 for k, v in data.items():
   print('%s: ' % k, v.shape)
 
 
 # ## Batch normalization: forward
+print("\n****    BATCH NORM: FWD    ****")
 # In the file `cs231n/layers.py`, implement the batch normalization forward pass in the function `batchnorm_forward`. Once you have done so, run the following to test your implementation.
-# 
 # Referencing the paper linked to above in [1] may be helpful!
-
-# In[ ]:
-
 
 # Check the training-time forward pass by checking means and variances
 # of features both before and after batch normalization   
@@ -89,10 +68,6 @@ beta = np.asarray([11.0, 12.0, 13.0])
 print('After batch normalization (gamma=', gamma, ', beta=', beta, ')')
 a_norm, _ = batchnorm_forward(a, gamma, beta, {'mode': 'train'})
 print_mean_std(a_norm,axis=0)
-
-
-# In[ ]:
-
 
 # Check the test-time forward pass by running the training-time
 # forward pass many times to warm up the running averages, and then
@@ -125,14 +100,10 @@ print_mean_std(a_norm,axis=0)
 
 
 # ## Batch normalization: backward
+print("\n****    BATCH NORM: BCKWD    ****")
 # Now implement the backward pass for batch normalization in the function `batchnorm_backward`.
-# 
 # To derive the backward pass you should write out the computation graph for batch normalization and backprop through each of the intermediate nodes. Some intermediates may have multiple outgoing branches; make sure to sum gradients across these branches in the backward pass.
-# 
 # Once you have finished, run the following to numerically check your backward pass.
-
-# In[ ]:
-
 
 # Gradient check batchnorm backward pass
 np.random.seed(231)
@@ -160,10 +131,9 @@ print('dbeta error: ', rel_error(db_num, dbeta))
 
 
 # ## Batch normalization: alternative backward
+print("\n****    BATCH NORM: ALT BCKWD    ****")
 # In class we talked about two different implementations for the sigmoid backward pass. One strategy is to write out a computation graph composed of simple operations and backprop through all intermediate values. Another strategy is to work out the derivatives on paper. For example, you can derive a very simple formula for the sigmoid function's backward pass by simplifying gradients on paper.
-# 
 # Surprisingly, it turns out that you can do a similar simplification for the batch normalization backward pass too!  
-# 
 # In the forward pass, given a set of inputs $X=\begin{bmatrix}x_1\\x_2\\...\\x_N\end{bmatrix}$, 
 # 
 # we first calculate the mean $\mu$ and variance $v$.
@@ -191,9 +161,6 @@ print('dbeta error: ', rel_error(db_num, dbeta))
 # 
 # After doing so, implement the simplified batch normalization backward pass in the function `batchnorm_backward_alt` and compare the two implementations by running the following. Your two implementations should compute nearly identical results, but the alternative implementation should be a bit faster.
 
-# In[ ]:
-
-
 np.random.seed(231)
 N, D = 100, 500
 x = 5 * np.random.randn(N, D) + 12
@@ -217,14 +184,10 @@ print('speedup: %.2fx' % ((t2 - t1) / (t3 - t2)))
 
 
 # ## Fully Connected Nets with Batch Normalization
+print("\n****    FCNN W/ BATCH NORM    ****")
 # Now that you have a working implementation for batch normalization, go back to your `FullyConnectedNet` in the file `cs231n/classifiers/fc_net.py`. Modify your implementation to add batch normalization.
-# 
 # Concretely, when the `normalization` flag is set to `"batchnorm"` in the constructor, you should insert a batch normalization layer before each ReLU nonlinearity. The outputs from the last layer of the network should not be normalized. Once you are done, run the following to gradient-check your implementation.
-# 
 # HINT: You might find it useful to define an additional helper layer similar to those in the file `cs231n/layer_utils.py`. If you decide to do so, do it in the file `cs231n/classifiers/fc_net.py`.
-
-# In[ ]:
-
 
 np.random.seed(231)
 N, D, H1, H2, C = 2, 15, 20, 30, 10
@@ -251,10 +214,8 @@ for reg in [0, 3.14]:
 
 
 # # Batchnorm for deep networks
+print("\n****    BATCHNORM FOR DEEP NETS    ****")
 # Run the following to train a six-layer network on a subset of 1000 training examples both with and without batch normalization.
-
-# In[ ]:
-
 
 np.random.seed(231)
 # Try training a very deep net with batchnorm
@@ -295,8 +256,6 @@ solver.train()
 
 # Run the following to visualize the results from two networks trained above. You should find that using batch normalization helps the network to converge much faster.
 
-# In[ ]:
-
 
 def plot_training_history(title, label, baseline, bn_solvers, plot_fn, bl_marker='.', bn_marker='.', labels=None):
     """utility function for plotting training history"""
@@ -325,16 +284,13 @@ plt.subplot(3, 1, 3)
 plot_training_history('Validation accuracy','Epoch', solver, [bn_solver],                       lambda x: x.val_acc_history, bl_marker='-o', bn_marker='-o')
 
 plt.gcf().set_size_inches(15, 15)
-plt.show()
+plt.savefig("q2_BN_6L_DeepNet_LossHistory.png")
 
 
 # # Batch normalization and initialization
+print("\n****    BATCH NORM & INIT    ****")
 # We will now run a small experiment to study the interaction of batch normalization and weight initialization.
-# 
 # The first cell will train 8-layer networks both with and without batch normalization using different scales for weight initialization. The second layer will plot training accuracy, validation set accuracy, and training loss as a function of the weight initialization scale.
-
-# In[ ]:
-
 
 np.random.seed(231)
 # Try training a very deep net with batchnorm
@@ -374,9 +330,6 @@ for i, weight_scale in enumerate(weight_scales):
                   verbose=False, print_every=200)
     solver.train()
     solvers_ws[weight_scale] = solver
-
-
-# In[ ]:
 
 
 # Plot results of weight scale experiment
@@ -431,12 +384,9 @@ plt.show()
 # 
 
 # # Batch normalization and batch size
+print("\n****    BATCH NORM AND BATCH SIZE    ****")
 # We will now run a small experiment to study the interaction of batch normalization and batch size.
-# 
 # The first cell will train 6-layer networks both with and without batch normalization using different batch sizes. The second layer will plot training accuracy and validation set accuracy over time.
-
-# In[ ]:
-
 
 def run_batchsize_experiments(normalization_mode):
     np.random.seed(231)
@@ -486,10 +436,6 @@ def run_batchsize_experiments(normalization_mode):
 batch_sizes = [5,10,50]
 bn_solvers_bsize, solver_bsize, batch_sizes = run_batchsize_experiments('batchnorm')
 
-
-# In[ ]:
-
-
 plt.subplot(2, 1, 1)
 plot_training_history('Training accuracy (Batch Normalization)','Epoch', solver_bsize, bn_solvers_bsize,                       lambda x: x.train_acc_history, bl_marker='-^', bn_marker='-o', labels=batch_sizes)
 plt.subplot(2, 1, 2)
@@ -507,10 +453,9 @@ plt.show()
 # 
 
 # # Layer Normalization
+print("\n****    LAYER NORM    ****")
 # Batch normalization has proved to be effective in making networks easier to train, but the dependency on batch size makes it less useful in complex networks which have a cap on the input batch size due to hardware limitations. 
-# 
 # Several alternatives to batch normalization have been proposed to mitigate this problem; one such technique is Layer Normalization [2]. Instead of normalizing over the batch, we normalize over the features. In other words, when using Layer Normalization, each feature vector corresponding to a single datapoint is normalized based on the sum of all terms within that feature vector.
-# 
 # [2] [Ba, Jimmy Lei, Jamie Ryan Kiros, and Geoffrey E. Hinton. "Layer Normalization." stat 1050 (2016): 21.](https://arxiv.org/pdf/1607.06450.pdf)
 
 # ## Inline Question 3:
@@ -541,9 +486,6 @@ plt.show()
 # 
 # Run the third cell below to run the batch size experiment on layer normalization.
 
-# In[ ]:
-
-
 # Check the training-time forward pass by checking means and variances
 # of features both before and after layer normalization   
 
@@ -573,10 +515,8 @@ a_norm, _ = layernorm_forward(a, gamma, beta, {'mode': 'train'})
 print_mean_std(a_norm,axis=1)
 
 
-# In[ ]:
-
-
 # Gradient check batchnorm backward pass
+print("\n****    GRAD CHECK BATCHNORM BCKWD PASS    ****")
 np.random.seed(231)
 N, D = 4, 5
 x = 5 * np.random.randn(N, D) + 12
@@ -605,8 +545,6 @@ print('dbeta error: ', rel_error(db_num, dbeta))
 # # Layer Normalization and batch size
 # 
 # We will now run the previous batch size experiment with layer normalization instead of batch normalization. Compared to the previous experiment, you should see a markedly smaller influence of batch size on the training history!
-
-# In[ ]:
 
 
 ln_solvers_bsize, solver_bsize, batch_sizes = run_batchsize_experiments('layernorm')
