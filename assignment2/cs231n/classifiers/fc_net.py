@@ -261,8 +261,8 @@ class FullyConnectedNet(object):
                gamma = self.params['gamma' + str(i+1)]
                beta  = self.params['beta' + str(i+1)]
                bn_params = self.bn_params[i]
-            #x, cache = affine_norm_relu_forward(x,w,b, gamma, beta, bn_params, self.normalization, self.use_dropout, self.dropout_param)
-            x, cache = affine_relu_forward(x, w, b)
+            x, cache = affine_relu_forward_helper(x,w,b, gamma, beta, bn_params, self.normalization, self.use_dropout, self.dropout_param)
+            #x, cache = affine_relu_forward(x, w, b)
             caches.append(cache)
         w = self.params['W' + str(self.num_layers)]
         b = self.params['b' + str(self.num_layers)]
@@ -303,8 +303,8 @@ class FullyConnectedNet(object):
         grads['b' + str(self.num_layers)] = db
 
         for i in range(self.num_layers - 2, -1, -1):
-            #dx, dw, db, dgamma, dbeta = affine_norm_relu_backward(dout, caches[i], self.normalization, self.use_dropout)
-            dx, dw, db = affine_relu_backward(dout, caches[i])
+            dx, dw, db, dgamma, dbeta = affine_relu_backward_helper(dout, caches[i], self.normalization, self.use_dropout)
+            #dx, dw, db = affine_relu_backward(dout, caches[i])
             if self.normalization != None:
                grads['gamma' + str(i+1)] = dgamma
                grads['beta' + str(i+1)] = dbeta
@@ -317,37 +317,30 @@ class FullyConnectedNet(object):
 
         return loss, grads
 
-# helper layer: affine - batch/layer norm - relu - dropout
-def affine_norm_relu_forward(x, w, b, gamma, beta, bn_param, normalization, dropout, do_param):
-    bn_cache, do_cache = None, None
-    # affine layer
-    out, fc_cache = affine_forward(x,w,b)
-    # batch/layer norm
-    if normalization == 'batchnorm':
-       out, bn_cache = batchnorm_forward(out, gamma, beta, bn_param)
-    elif normalization == 'layernorm':
-       out, bn_cache = layernorm_forward(out, gamma, beta, bn_param)       
-    # relu
-    out, relu_cache = relu_forward(out)
-    # dropout
-    if dropout:
-       out, do_cache = dropout_forward(out, do_param)
-    return out, (fc_cache, bn_cache, relu_cache, do_cache)
-
-def affine_norm_relu_backward(dout, cache, normalization, dropout):
-    fc_cache, bn_cache, relu_cache, do_cache = cache
-    # dropout
-    if dropout:
-       dout = dropout_backward(dout, do_cache)
-    # relu
-    dout = relu_backward(dout, relu_cache)
-    # batch/layer norm
-    dgamma, dbeta = None, None
-    if normalization == 'batchnorm':
-       dout, dgamma, dbeta = batchnorm_backward_alt(dout, bn_cache)   
-    elif normalization == 'layernorm':
-       dout, dgamma, dbeta = layernorm_backward(dout, bn_cache)
-    # affine layer
-    dx, dw, db = affine_backward(dout, fc_cache)
-    return dx, dw, db, dgamma, dbeta
+#def affine_relu_forward_helper(x, w, b, gamma, beta, bn_param, normalization, dropout, do_param):
+#    bn_cache, do_cache = None, None
+#    out, fc_cache = affine_forward(x,w,b)
+#    if normalization == 'batchnorm':
+#       out, bn_cache = batchnorm_forward(out, gamma, beta, bn_param)
+#    elif normalization == 'layernorm':
+#       out, bn_cache = layernorm_forward(out, gamma, beta, bn_param)       
+#    out, relu_cache = relu_forward(out)
+#    if dropout:
+#       out, do_cache = dropout_forward(out, do_param)
+#
+#    return out, (fc_cache, bn_cache, relu_cache, do_cache)
+#
+#def affine_relu_backward_helper(dout, cache, normalization, dropout):
+#    fc_cache, bn_cache, relu_cache, do_cache = cache
+#    if dropout:
+#       dout = dropout_backward(dout, do_cache)
+#    dout = relu_backward(dout, relu_cache)
+#    dgamma, dbeta = None, None
+#    if normalization == 'batchnorm':
+#       dout, dgamma, dbeta = batchnorm_backward_alt(dout, bn_cache)   
+#    elif normalization == 'layernorm':
+#       dout, dgamma, dbeta = layernorm_backward(dout, bn_cache)
+#    dx, dw, db = affine_backward(dout, fc_cache)
+#
+#    return dx, dw, db, dgamma, dbeta
 
