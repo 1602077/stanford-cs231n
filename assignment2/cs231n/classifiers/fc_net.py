@@ -317,30 +317,30 @@ class FullyConnectedNet(object):
 
         return loss, grads
 
-#def affine_relu_forward_helper(x, w, b, gamma, beta, bn_param, normalization, dropout, do_param):
-#    bn_cache, do_cache = None, None
-#    out, fc_cache = affine_forward(x,w,b)
-#    if normalization == 'batchnorm':
-#       out, bn_cache = batchnorm_forward(out, gamma, beta, bn_param)
-#    elif normalization == 'layernorm':
-#       out, bn_cache = layernorm_forward(out, gamma, beta, bn_param)       
-#    out, relu_cache = relu_forward(out)
-#    if dropout:
-#       out, do_cache = dropout_forward(out, do_param)
-#
-#    return out, (fc_cache, bn_cache, relu_cache, do_cache)
-#
-#def affine_relu_backward_helper(dout, cache, normalization, dropout):
-#    fc_cache, bn_cache, relu_cache, do_cache = cache
-#    if dropout:
-#       dout = dropout_backward(dout, do_cache)
-#    dout = relu_backward(dout, relu_cache)
-#    dgamma, dbeta = None, None
-#    if normalization == 'batchnorm':
-#       dout, dgamma, dbeta = batchnorm_backward_alt(dout, bn_cache)   
-#    elif normalization == 'layernorm':
-#       dout, dgamma, dbeta = layernorm_backward(dout, bn_cache)
-#    dx, dw, db = affine_backward(dout, fc_cache)
-#
-#    return dx, dw, db, dgamma, dbeta
+def affine_relu_forward_helper(x, w, b, gamma, beta, bn_param, normalization, dropout, do_param):
+    bn_cache, do_cache = None, None
+    out, fc_cache = affine_forward(x,w,b)
+    if normalization == 'batchnorm':
+       out, bn_cache = batchnorm_forward(out, gamma, beta, bn_param)
+    elif normalization == 'layernorm':
+       out, bn_cache = layernorm_forward(out, gamma, beta, bn_param)       
+    out, relu_cache = relu_forward(out)
+    if dropout:
+       out, do_cache = dropout_forward(out, do_param)
+
+    return out, (fc_cache, bn_cache, relu_cache, do_cache)
+
+def affine_relu_backward_helper(dout, cache, normalization, dropout):
+    fc_cache, bn_cache, relu_cache, do_cache = cache
+    if dropout:
+       dout = dropout_backward(dout, do_cache)
+    dout = relu_backward(dout, relu_cache)
+    dgamma, dbeta = None, None
+    if normalization == 'batchnorm':
+       dout, dgamma, dbeta = batchnorm_backward_alt(dout, bn_cache)   
+    elif normalization == 'layernorm':
+       dout, dgamma, dbeta = layernorm_backward(dout, bn_cache)
+    dx, dw, db = affine_backward(dout, fc_cache)
+
+    return dx, dw, db, dgamma, dbeta
 
