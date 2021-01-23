@@ -98,7 +98,6 @@ a_norm, _ = batchnorm_forward(a, gamma, beta, bn_param)
 print('After batch normalization (test-time):')
 print_mean_std(a_norm,axis=0)
 
-
 # ## Batch normalization: backward
 print("\n****    BATCH NORM: BCKWD    ****")
 # Now implement the backward pass for batch normalization in the function `batchnorm_backward`.
@@ -373,15 +372,8 @@ plt.legend()
 plt.gca().set_ylim(1.0, 3.5)
 
 plt.gcf().set_size_inches(15, 15)
-plt.show()
+plt.savefig("q2_BN_Init.png")
 
-
-# ## Inline Question 1:
-# Describe the results of this experiment. How does the scale of weight initialization affect models with/without batch normalization differently, and why?
-# 
-# ## Answer:
-# [FILL THIS IN]
-# 
 
 # # Batch normalization and batch size
 print("\n****    BATCH NORM AND BATCH SIZE    ****")
@@ -557,15 +549,3 @@ plot_training_history('Validation accuracy (Layer Normalization)','Epoch', solve
 plt.gcf().set_size_inches(15, 10)
 plt.show()
 
-
-# ## Inline Question 4:
-# When is layer normalization likely to not work well, and why?
-# 
-# 1. Using it in a very deep network
-# 2. Having a very small dimension of features
-# 3. Having a high regularization term
-# 
-# 
-# ## Answer:
-# [FILL THIS IN]
-# 
