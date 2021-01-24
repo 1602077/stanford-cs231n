@@ -45,37 +45,28 @@
 # 5. Part V, CIFAR-10 open-ended challenge: please implement your own network to get as high accuracy as possible on CIFAR-10. You can experiment with any layer, optimizer, hyperparameters or other advanced features. 
 # 
 # Here is a table of comparison:
-# 
 # | API           | Flexibility | Convenience |
 # |---------------|-------------|-------------|
 # | Barebone      | High        | Low         |
-# | `nn.Module`     | High        | Medium      |
-# | `nn.Sequential` | Low         | High        |
+# | `nn.Module`   | High        | Medium      |
+# | `nn.Sequential`| Low         | High        |
 
+############################################################
 # # Part I. Preparation
-# 
+############################################################
+
 # First, we load the CIFAR-10 dataset. This might take a couple minutes the first time you do it, but the files should stay cached after that.
-# 
 # In previous parts of the assignment we had to write our own code to download the CIFAR-10 dataset, preprocess it, and iterate through it in minibatches; PyTorch provides convenient tools to automate this process for us.
 
-# In[ ]:
-
-
 import torch
-assert '.'.join(torch.__version__.split('.')[:2]) == '1.4'
+#assert '.'.join(torch.__version__.split('.')[:2]) == '1.4'
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from torch.utils.data import sampler
-
 import torchvision.datasets as dset
 import torchvision.transforms as T
-
 import numpy as np
-
-
-# In[ ]:
-
 
 NUM_TRAIN = 49000
 
@@ -111,13 +102,6 @@ loader_test = DataLoader(cifar10_test, batch_size=64)
 # You have an option to **use GPU by setting the flag to True below**. It is not necessary to use GPU for this assignment. Note that if your computer does not have CUDA enabled, `torch.cuda.is_available()` will return False and this notebook will fallback to CPU mode.
 # 
 # The global variables `dtype` and `device` will control the data types throughout this assignment.
-# 
-# ## Colab Users
-# 
-# If you are using Colab, you need to manually switch to a GPU device. You can do this by clicking `Runtime -> Change runtime type` and selecting `GPU` under `Hardware Accelerator`. Note that you have to rerun the cells from the top since the kernel gets restarted upon switching runtimes.
-
-# In[ ]:
-
 
 USE_GPU = True
 
@@ -133,9 +117,10 @@ print_every = 100
 
 print('using device:', device)
 
-
+############################################################
 # # Part II. Barebones PyTorch
-# 
+# ##########################################################
+
 # PyTorch ships with high-level APIs to help us define model architectures conveniently, which we will cover in Part II of this tutorial. In this section, we will start with the barebone PyTorch elements to understand the autograd engine better. After this exercise, you will come to appreciate the high-level model API more.
 # 
 # We will start with a simple fully-connected ReLU network with two hidden layers and no biases for CIFAR classification. 
@@ -155,9 +140,6 @@ print('using device:', device)
 # 
 # This is the right way to represent the data when we are doing something like a 2D convolution, that needs spatial understanding of where the intermediate features are relative to each other. When we use fully connected affine layers to process the image, however, we want each datapoint to be represented by a single vector -- it's no longer useful to segregate the different channels, rows, and columns of the data. So, we use a "flatten" operation to collapse the `C x H x W` values per representation into a single long vector. The flatten function below first reads in the N, C, H, and W values from a given batch of data, and then returns a "view" of that data. "View" is analogous to numpy's "reshape" method: it reshapes x's dimensions to be N x ??, where ?? is allowed to be anything (in this case, it will be C x H x W, but we don't need to specify that explicitly). 
 
-# In[ ]:
-
-
 def flatten(x):
     N = x.shape[0] # read in N, C, H, W
     return x.view(N, -1)  # "flatten" the C * H * W values into a single vector per image
@@ -169,15 +151,11 @@ def test_flatten():
 
 test_flatten()
 
-
+############################################################
 # ### Barebones PyTorch: Two-Layer Network
-# 
-# Here we define a function `two_layer_fc` which performs the forward pass of a two-layer fully-connected ReLU network on a batch of image data. After defining the forward pass we check that it doesn't crash and that it produces outputs of the right shape by running zeros through the network.
-# 
-# You don't have to write any code here, but it's important that you read and understand the implementation.
+############################################################
 
-# In[ ]:
-
+# Here we define a function `two_layer_fc` which performs the forward pass of a two-layer fully-connected ReLU network on a batch of image data. After defining the forward pass we check that it doesn't crash and that it produces outputs of the right shape by running zeros through the network. You don't have to write any code here, but it's important that you read and understand the implementation.
 
 import torch.nn.functional as F  # useful stateless functions
 
@@ -204,7 +182,6 @@ def two_layer_fc(x, params):
     """
     # first we flatten the image
     x = flatten(x)  # shape: [batch_size, C x H x W]
-    
     w1, w2 = params
     
     # Forward pass: compute predicted y using operations on Tensors. Since w1 and
@@ -217,7 +194,6 @@ def two_layer_fc(x, params):
     x = x.mm(w2)
     return x
     
-
 def two_layer_fc_test():
     hidden_layer_size = 42
     x = torch.zeros((64, 50), dtype=dtype)  # minibatch size 64, feature dimension 50
@@ -228,23 +204,21 @@ def two_layer_fc_test():
 
 two_layer_fc_test()
 
-
+############################################################
 # ### Barebones PyTorch: Three-Layer ConvNet
-# 
+############################################################
+
 # Here you will complete the implementation of the function `three_layer_convnet`, which will perform the forward pass of a three-layer convolutional network. Like above, we can immediately test our implementation by passing zeros through the network. The network should have the following architecture:
-# 
+ 
 # 1. A convolutional layer (with bias) with `channel_1` filters, each with shape `KW1 x KH1`, and zero-padding of two
 # 2. ReLU nonlinearity
 # 3. A convolutional layer (with bias) with `channel_2` filters, each with shape `KW2 x KH2`, and zero-padding of one
 # 4. ReLU nonlinearity
 # 5. Fully-connected layer with bias, producing scores for C classes.
-# 
+ 
 # Note that we have **no softmax activation** here after our fully-connected layer: this is because PyTorch's cross entropy loss performs a softmax activation for you, and by bundling that step in makes computation more efficient.
-# 
+
 # **HINT**: For convolutions: http://pytorch.org/docs/stable/nn.html#torch.nn.functional.conv2d; pay attention to the shapes of convolutional filters!
-
-# In[ ]:
-
 
 def three_layer_convnet(x, params):
     """
@@ -277,22 +251,19 @@ def three_layer_convnet(x, params):
     # TODO: Implement the forward pass for the three-layer ConvNet.                #
     ################################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-    pass
-
+    conv1 = F.conv2d(x, weight = conv_w1, bias=conv_b1, padding=2)
+    relu1 = F.relu(conv1)
+    conv2 = F.conv2d(relu1, weight=conv_w2, bias=conv_b2, padding =1)
+    relu2 = F.relu(conv2)
+    relu2_flattened = flatten(relu2)
+    scores = relu2_flattened.mm(fc_w) + fc_b
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ################################################################################
     #                                 END OF YOUR CODE                             #
     ################################################################################
     return scores
 
-
-# After defining the forward pass of the ConvNet above, run the following cell to test your implementation.
-# 
-# When you run this function, scores should have shape (64, 10).
-
-# In[ ]:
-
+# After defining the forward pass of the ConvNet above, run the following cell to test your implementation. When you run this function, scores should have shape (64, 10).
 
 def three_layer_convnet_test():
     x = torch.zeros((64, 3, 32, 32), dtype=dtype)  # minibatch size 64, image size [3, 32, 32]
@@ -310,8 +281,10 @@ def three_layer_convnet_test():
     print(scores.size())  # you should see [64, 10]
 three_layer_convnet_test()
 
-
+############################################################
 # ### Barebones PyTorch: Initialization
+############################################################
+
 # Let's write a couple utility methods to initialize the weight matrices for our models.
 # 
 # - `random_weight(shape)` initializes a weight tensor with the Kaiming normalization method.
@@ -320,8 +293,6 @@ three_layer_convnet_test()
 # The `random_weight` function uses the Kaiming normal initialization method, described in:
 # 
 # He et al, *Delving Deep into Rectifiers: Surpassing Human-Level Performance on ImageNet Classification*, ICCV 2015, https://arxiv.org/abs/1502.01852
-
-# In[ ]:
 
 
 def random_weight(shape):
@@ -347,14 +318,13 @@ def zero_weight(shape):
 # Otherwise it should be `torch.FloatTensor`
 random_weight((3, 5))
 
-
+############################################################
 # ### Barebones PyTorch: Check Accuracy
+############################################################
+
 # When training the model we will use the following function to check the accuracy of our model on the training or validation sets.
 # 
 # When checking accuracy we don't need to compute any gradients; as a result we don't need PyTorch to build a computational graph for us when we compute scores. To prevent a graph from being built we scope our computation under a `torch.no_grad()` context manager.
-
-# In[ ]:
-
 
 def check_accuracy_part2(loader, model_fn, params):
     """
@@ -382,14 +352,13 @@ def check_accuracy_part2(loader, model_fn, params):
         acc = float(num_correct) / num_samples
         print('Got %d / %d correct (%.2f%%)' % (num_correct, num_samples, 100 * acc))
 
-
+############################################################
 # ### BareBones PyTorch: Training Loop
+############################################################
+
 # We can now set up a basic training loop to train our network. We will train the model using stochastic gradient descent without momentum. We will use `torch.functional.cross_entropy` to compute the loss; you can [read about it here](http://pytorch.org/docs/stable/nn.html#cross-entropy).
 # 
 # The training loop takes as input the neural network function, a list of initialized parameters (`[w1, w2]` in our example), and learning rate.
-
-# In[ ]:
-
 
 def train_part2(model_fn, params, learning_rate):
     """
@@ -436,8 +405,10 @@ def train_part2(model_fn, params, learning_rate):
             check_accuracy_part2(loader_val, model_fn, params)
             print()
 
-
+############################################################
 # ### BareBones PyTorch: Train a Two-Layer Network
+############################################################
+
 # Now we are ready to run the training loop. We need to explicitly allocate tensors for the fully connected weights, `w1` and `w2`. 
 # 
 # Each minibatch of CIFAR has 64 examples, so the tensor shape is `[64, 3, 32, 32]`. 
@@ -449,9 +420,6 @@ def train_part2(model_fn, params, learning_rate):
 # 
 # You don't need to tune any hyperparameters but you should see accuracies above 40% after training for one epoch.
 
-# In[ ]:
-
-
 hidden_layer_size = 4000
 learning_rate = 1e-2
 
@@ -460,9 +428,10 @@ w2 = random_weight((hidden_layer_size, 10))
 
 train_part2(two_layer_fc, [w1, w2], learning_rate)
 
-
+############################################################
 # ### BareBones PyTorch: Training a ConvNet
-# 
+############################################################
+
 # In the below you should use the functions defined above to train a three-layer convolutional network on CIFAR. The network should have the following architecture:
 # 
 # 1. Convolutional layer (with bias) with 32 5x5 filters, with zero-padding of 2
@@ -474,9 +443,6 @@ train_part2(two_layer_fc, [w1, w2], learning_rate)
 # You should initialize your weight matrices using the `random_weight` function defined above, and you should initialize your bias vectors using the `zero_weight` function above.
 # 
 # You don't need to tune any hyperparameters, but if everything works correctly you should achieve an accuracy above 42% after one epoch.
-
-# In[ ]:
-
 
 learning_rate = 3e-3
 
@@ -494,9 +460,12 @@ fc_b = None
 # TODO: Initialize the parameters of a three-layer ConvNet.                    #
 ################################################################################
 # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-pass
-
+conv_w1 = random_weight((channel_1, 3, 5, 5))
+conv_b1 = zero_weight((channel_1, ))
+conv_w2 = random_weight((channel_2, channel_1, 3, 3))
+conv_b2 = zero_weight((channel_2, ))
+fc_w = random_weight((channel_2*channel_1*channel_1, 10))
+fc_b = zero_weight((10, ))
 # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 ################################################################################
 #                                 END OF YOUR CODE                             #
@@ -505,9 +474,10 @@ pass
 params = [conv_w1, conv_b1, conv_w2, conv_b2, fc_w, fc_b]
 train_part2(three_layer_convnet, params, learning_rate)
 
-
+############################################################
 # # Part III. PyTorch Module API
-# 
+############################################################ 
+
 # Barebone PyTorch requires that we track all the parameter tensors by hand. This is fine for small networks with a few tensors, but it would be extremely inconvenient and error-prone to track tens or hundreds of tensors in larger networks.
 # 
 # PyTorch provides the `nn.Module` API for you to define arbitrary network architectures, while tracking every learnable parameters for you. In Part II, we implemented SGD ourselves. PyTorch also provides the `torch.optim` package that implements all the common optimizers, such as RMSProp, Adagrad, and Adam. It even supports approximate second-order methods like L-BFGS! You can refer to the [doc](http://pytorch.org/docs/master/optim.html) for the exact specifications of each optimizer.
