@@ -426,7 +426,7 @@ learning_rate = 1e-2
 w1 = random_weight((3 * 32 * 32, hidden_layer_size))
 w2 = random_weight((hidden_layer_size, 10))
 
-train_part2(two_layer_fc, [w1, w2], learning_rate)
+#train_part2(two_layer_fc, [w1, w2], learning_rate)
 
 ############################################################
 # ### BareBones PyTorch: Training a ConvNet
@@ -472,7 +472,7 @@ fc_b = zero_weight((10, ))
 ################################################################################
 
 params = [conv_w1, conv_b1, conv_w2, conv_b2, fc_w, fc_b]
-train_part2(three_layer_convnet, params, learning_rate)
+#train_part2(three_layer_convnet, params, learning_rate)
 
 ############################################################
 # # Part III. PyTorch Module API
@@ -492,11 +492,11 @@ train_part2(three_layer_convnet, params, learning_rate)
 # 
 # After you define your Module subclass, you can instantiate it as an object and call it just like the NN forward function in part II.
 # 
+
+############################################################ 
 # ### Module API: Two-Layer Network
+############################################################ 
 # Here is a concrete example of a 2-layer fully connected network:
-
-# In[ ]:
-
 
 class TwoLayerFC(nn.Module):
     def __init__(self, input_size, hidden_size, num_classes):
@@ -521,10 +521,12 @@ def test_TwoLayerFC():
     model = TwoLayerFC(input_size, 42, 10)
     scores = model(x)
     print(scores.size())  # you should see [64, 10]
-test_TwoLayerFC()
+#test_TwoLayerFC()
 
-
+############################################################ 
 # ### Module API: Three-Layer ConvNet
+############################################################ 
+
 # It's your turn to implement a 3-layer ConvNet followed by a fully connected layer. The network architecture should be the same as in Part II:
 # 
 # 1. Convolutional layer with `channel_1` 5x5 filters with zero-padding of 2
@@ -539,8 +541,6 @@ test_TwoLayerFC()
 # 
 # After you implement the three-layer ConvNet, the `test_ThreeLayerConvNet` function will run your implementation; it should print `(64, 10)` for the shape of the output scores.
 
-# In[ ]:
-
 
 class ThreeLayerConvNet(nn.Module):
     def __init__(self, in_channel, channel_1, channel_2, num_classes):
@@ -550,9 +550,15 @@ class ThreeLayerConvNet(nn.Module):
         # architecture defined above.                                          #
         ########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-        pass
-
+        self.conv1 = nn.Conv2d(in_channel, channel_1, kernel_size = 5, padding = 2, bias = True)
+        nn.init.kaiming_normal_(self.conv1.weight)
+        nn.init.constant_(self.conv1.bias, 0)
+        self.conv2 = nn.Conv2d(channel_1, channel_2, kernel_size = 3, padding = 1, bias = True)
+        nn.init.kaiming_normal_(self.conv2.weight)
+        nn.init.constant_(self.conv2.bias, 0)
+        self.fc = nn.Linear(channel_2*32*32, num_classes)
+        nn.init.kaiming_normal_(self.fc.weight)
+        nn.init.constant_(self.fc.bias, 0)
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ########################################################################
         #                          END OF YOUR CODE                            #       
@@ -566,9 +572,9 @@ class ThreeLayerConvNet(nn.Module):
         # connectivity of those layers in forward()                            #
         ########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-        pass
-
+        relu1 = F.relu(self.conv1(x))
+        relu2 = F.relu(self.conv2(relu1))
+        scores = self.fc(flatten(relu2))
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ########################################################################
         #                             END OF YOUR CODE                         #
@@ -583,14 +589,12 @@ def test_ThreeLayerConvNet():
     print(scores.size())  # you should see [64, 10]
 test_ThreeLayerConvNet()
 
-
+############################################################
 # ### Module API: Check Accuracy
+############################################################
+
 # Given the validation or test set, we can check the classification accuracy of a neural network. 
-# 
 # This version is slightly different from the one in part II. You don't manually pass in the parameters anymore.
-
-# In[ ]:
-
 
 def check_accuracy_part34(loader, model):
     if loader.dataset.train:
@@ -609,14 +613,13 @@ def check_accuracy_part34(loader, model):
             num_correct += (preds == y).sum()
             num_samples += preds.size(0)
         acc = float(num_correct) / num_samples
-        print('Got %d / %d correct (%.2f)' % (num_correct, num_samples, 100 * acc))
+        print('Got %d / %d correct (%.2f%%)' % (num_correct, num_samples, 100 * acc))
 
-
+############################################################
 # ### Module API: Training Loop
+############################################################
+
 # We also use a slightly different training loop. Rather than updating the values of the weights ourselves, we use an Optimizer object from the `torch.optim` package, which abstract the notion of an optimization algorithm and provides implementations of most of the algorithms commonly used to optimize neural networks.
-
-# In[ ]:
-
 
 def train_part34(model, optimizer, epochs=1):
     """
@@ -656,8 +659,10 @@ def train_part34(model, optimizer, epochs=1):
                 check_accuracy_part34(loader_val, model)
                 print()
 
-
+############################################################
 # ### Module API: Train a Two-Layer Network
+############################################################
+
 # Now we are ready to run the training loop. In contrast to part II, we don't explicitly allocate parameter tensors anymore.
 # 
 # Simply pass the input size, hidden layer size, and number of classes (i.e. output size) to the constructor of `TwoLayerFC`. 
@@ -666,24 +671,20 @@ def train_part34(model, optimizer, epochs=1):
 # 
 # You don't need to tune any hyperparameters, but you should see model accuracies above 40% after training for one epoch.
 
-# In[ ]:
-
-
 hidden_layer_size = 4000
 learning_rate = 1e-2
 model = TwoLayerFC(3 * 32 * 32, hidden_layer_size, 10)
 optimizer = optim.SGD(model.parameters(), lr=learning_rate)
-
+print("****     2_NN Train      ****")
 train_part34(model, optimizer)
 
-
+############################################################
 # ### Module API: Train a Three-Layer ConvNet
+############################################################
+
 # You should now use the Module API to train a three-layer ConvNet on CIFAR. This should look very similar to training the two-layer network! You don't need to tune any hyperparameters, but you should achieve above above 45% after training for one epoch.
 # 
 # You should train the model using stochastic gradient descent without momentum.
-
-# In[ ]:
-
 
 learning_rate = 3e-3
 channel_1 = 32
@@ -695,19 +696,19 @@ optimizer = None
 # TODO: Instantiate your ThreeLayerConvNet model and a corresponding optimizer #
 ################################################################################
 # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-pass
-
+model = ThreeLayerConvNet(3, channel_1, channel_2, 10)
+optimizer = optim.SGD(model.parameters(), lr=learning_rate)
 # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 ################################################################################
 #                                 END OF YOUR CODE                             
 ################################################################################
-
+print("****     3_CNN       ****")
 train_part34(model, optimizer)
 
-
+############################################################
 # # Part IV. PyTorch Sequential API
-# 
+############################################################
+
 # Part III introduced the PyTorch Module API, which allows you to define arbitrary learnable layers and their connectivity. 
 # 
 # For simple models like a stack of feed forward layers, you still need to go through 3 steps: subclass `nn.Module`, assign layers to class attributes in `__init__`, and call each layer one by one in `forward()`. Is there a more convenient way? 
