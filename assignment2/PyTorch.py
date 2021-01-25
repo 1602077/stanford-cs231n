@@ -541,7 +541,6 @@ def test_TwoLayerFC():
 # 
 # After you implement the three-layer ConvNet, the `test_ThreeLayerConvNet` function will run your implementation; it should print `(64, 10)` for the shape of the output scores.
 
-
 class ThreeLayerConvNet(nn.Module):
     def __init__(self, in_channel, channel_1, channel_2, num_classes):
         super().__init__()
@@ -580,7 +579,6 @@ class ThreeLayerConvNet(nn.Module):
         #                             END OF YOUR CODE                         #
         ########################################################################
         return scores
-
 
 def test_ThreeLayerConvNet():
     x = torch.zeros((64, 3, 32, 32), dtype=dtype)  # minibatch size 64, image size [3, 32, 32]
@@ -634,6 +632,7 @@ def train_part34(model, optimizer, epochs=1):
     """
     model = model.to(device=device)  # move the model parameters to CPU/GPU
     for e in range(epochs):
+        print("EPOCH NUMBER: %d / %d" % (e+1, epochs))
         for t, (x, y) in enumerate(loader_train):
             model.train()  # put model to training mode
             x = x.to(device=device, dtype=dtype)  # move to device, e.g. GPU
@@ -676,7 +675,7 @@ learning_rate = 1e-2
 model = TwoLayerFC(3 * 32 * 32, hidden_layer_size, 10)
 optimizer = optim.SGD(model.parameters(), lr=learning_rate)
 print("****     2_NN Train      ****")
-train_part34(model, optimizer)
+#train_part34(model, optimizer)
 
 ############################################################
 # ### Module API: Train a Three-Layer ConvNet
@@ -703,7 +702,7 @@ optimizer = optim.SGD(model.parameters(), lr=learning_rate)
 #                                 END OF YOUR CODE                             
 ################################################################################
 print("****     3_CNN       ****")
-train_part34(model, optimizer)
+#train_part34(model, optimizer)
 
 ############################################################
 # # Part IV. PyTorch Sequential API
@@ -719,9 +718,6 @@ train_part34(model, optimizer)
 # Let's see how to rewrite our two-layer fully connected network example with `nn.Sequential`, and train it using the training loop defined above.
 # 
 # Again, you don't need to tune any hyperparameters here, but you shoud achieve above 40% accuracy after one epoch of training.
-
-# In[ ]:
-
 
 # We need to wrap `flatten` function in a module in order to stack it
 # in nn.Sequential
@@ -743,8 +739,7 @@ model = nn.Sequential(
 optimizer = optim.SGD(model.parameters(), lr=learning_rate,
                      momentum=0.9, nesterov=True)
 
-train_part34(model, optimizer)
-
+#train_part34(model, optimizer)
 
 # ### Sequential API: Three-Layer ConvNet
 # Here you should use `nn.Sequential` to define and train a three-layer ConvNet with the same architecture we used in Part III:
@@ -761,9 +756,6 @@ train_part34(model, optimizer)
 # 
 # Again, you don't need to tune any hyperparameters but you should see accuracy above 55% after one epoch of training.
 
-# In[ ]:
-
-
 channel_1 = 32
 channel_2 = 16
 learning_rate = 1e-2
@@ -776,19 +768,31 @@ optimizer = None
 # Sequential API.                                                              #
 ################################################################################
 # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-pass
-
+model = nn.Sequential(
+    nn.Conv2d(3, channel_1, kernel_size=5, padding=2),
+    nn.ReLU(),
+    nn.Conv2d(channel_1, channel_2, kernel_size=3, padding=1),
+    nn.ReLU(),
+    nn.Flatten(),
+    nn.Linear(channel_2*channel_1*channel_1, 10)
+)
+optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9, nesterov=True)
+#def init_weights(m):
+#    if type(m) == nn.Conv2d or type(m) == nn.Linear:
+#        m.weight.data = random_weight(m.weight.size())
+#        m.bias.data = zero_weight(m.bias.size())
+#model.apply(init_weights)
 # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 ################################################################################
 #                                 END OF YOUR CODE                             
 ################################################################################
+print("****     2 CNN w/ bias       ****")
+#train_part34(model, optimizer)
 
-train_part34(model, optimizer)
-
-
+############################################################
 # # Part V. CIFAR-10 open-ended challenge
-# 
+############################################################
+
 # In this section, you can experiment with whatever ConvNet architecture you'd like on CIFAR-10. 
 # 
 # Now it's your job to experiment with architectures, hyperparameters, loss functions, and optimizers to train a model that achieves **at least 70%** accuracy on the CIFAR-10 **validation** set within 10 epochs. You can use the check_accuracy and train functions from above. You can use either `nn.Module` or `nn.Sequential` API. 
@@ -837,8 +841,6 @@ train_part34(model, optimizer)
 # 
 # ### Have fun and happy training! 
 
-# In[ ]:
-
 
 ################################################################################
 # TODO:                                                                        #         
@@ -853,32 +855,97 @@ train_part34(model, optimizer)
 ################################################################################
 model = None
 optimizer = None
-
+channel_1 = 16
+channel_2 = 32
+channel_3 = 64
 # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+cnn_model = nn.Sequential(
+    nn.Conv2d(3, channel_1, kernel_size=5, padding=2),
+    nn.BatchNorm2d(channel_1),
+    nn.ReLU(),
+    nn.MaxPool2d(2),
+    #nn.Dropout(p=0.4),
 
-pass
+    nn.Conv2d(channel_1, channel_2, kernel_size=3, padding=1),
+    nn.BatchNorm2d(channel_2),
+    nn.ReLU(),
+    nn.MaxPool2d(2),
+    #nn.Dropout(p=0.5),
 
+    nn.Conv2d(channel_2, channel_3, kernel_size=3, padding=1),
+    nn.BatchNorm2d(channel_3),
+    nn.ReLU(),
+    nn.MaxPool2d(2),
+    
+    Flatten(),
+    nn.Linear(64*4*4, 10)
+)
+
+class fourlayer_CNN(nn.Module):
+    def __init__(self):
+        super(fourlayer_CNN, self).__init__()
+
+        self.conv_layer = nn.Sequential(
+            nn.Conv2d(in_channels=3, out_channels=32, kernel_size=3, padding=1),
+            nn.BatchNorm2d(32),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+
+            nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, padding=1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            nn.Dropout2d(p=0.05),
+
+            nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, padding=1),
+            nn.BatchNorm2d(256),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(in_channels=256, out_channels=256, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+        )
+
+        self.fc_layer = nn.Sequential(
+            nn.Dropout(p=0.1),
+            nn.Linear(4096, 1024),
+            nn.ReLU(inplace=True),
+            nn.Linear(1024, 512),
+            nn.ReLU(inplace=True),
+            nn.Dropout(p=0.1),
+            nn.Linear(512, 10)
+        )
+
+    def forward(self, x):
+        x = self.conv_layer(x)
+        x = x.view(x.size(0), -1)
+        x = self.fc_layer(x)
+        return x
+
+model = fourlayer_CNN()
+learning_rate = 1e-3
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 ################################################################################
 #                                 END OF YOUR CODE                             
 ################################################################################
 
 # You should get at least 70% accuracy
-train_part34(model, optimizer, epochs=10)
+print()
+print("****     CIFAR Open Ended Challenge       ****")
+train_part34(model, optimizer, epochs=10) #revert to 10 for final training
 
-
-# ## Describe what you did 
-# 
-# In the cell below you should write an explanation of what you did, any additional features that you implemented, and/or any graphs that you made in the process of training and evaluating your network.
-
-# TODO: Describe what you did
+print("Architecture: Val ACC / Test ACC (%)")
+print("[conv-relu-pool]*3 - affine; RMSprop 76.20% / 70.41%.") # cnn_model
+print("[conv-relu-pool]*3 - affine; Adam 73.60% / 73.53%.")    # cnn_model
+print("[conv-batchnorm-relu-conv-pool]*3 - fc; 83.0% / 79.27%.")         # fourlayer_CNN()
 
 # ## Test set -- run this only once
-# 
 # Now that we've gotten a result we're happy with, we test our final model on the test set (which you should store in best_model). Think about how this compares to your validation set accuracy.
-
-# In[ ]:
-
 
 best_model = model
 check_accuracy_part34(loader_test, best_model)
