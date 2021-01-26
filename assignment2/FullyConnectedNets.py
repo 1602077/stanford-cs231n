@@ -650,7 +650,31 @@ best_model = None
 ################################################################################
 # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-pass
+#HYPER PARAMETER TUNING
+#for _ in range(25):
+#    weight_scale = 10**(np.random.uniform(-2, -1))
+#    lr = 10**(np.random.uniform(-5, -3))
+#    reg = 10**(np.random.uniform(-3, -2))
+#
+#    model = FullyConnectedNet([100, 100], weight_scale=weight_scale, reg=reg)
+#    FCNN_solver = Solver(model, data, num_epochs=10, batch_size=200, update_rule='rmsprop',
+#                        optim_config={'learning_rate': lr}, verbose=False)
+#    FCNN_solver.train()
+#
+#    val_acc = FCNN_solver.best_val_acc
+#    if best_val < val_acc:
+#        best_val = val_acc
+#        best_model = model
+#    print('learning_rate %e; weigh_scale %e; reg; %e; val_acc %f' % (lr, weight_scale, reg, val_acc))
+#
+#print()
+#print(best_val)
+
+model = FullyConnectedNet([100, 100], weight_scale=1.327633e-02, reg=7.940011e-03)
+FCNN_solver = Solver(model, data, num_epochs=10, batch_size=200, update_rule='rmsprop',
+                    optim_config={'learning_rate':1.244160e-04}, verbose=False)
+FCNN_solver.train()
+best_model = model
 
 # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 ################################################################################
@@ -662,6 +686,6 @@ pass
 
 y_test_pred = np.argmax(best_model.loss(data['X_test']), axis=1)
 y_val_pred = np.argmax(best_model.loss(data['X_val']), axis=1)
-print('Validation set accuracy: ', (y_val_pred == data['y_val']).mean())
-print('Test set accuracy: ', (y_test_pred == data['y_test']).mean())
+print('Validation set accuracy: ', (y_val_pred == data['y_val']).mean())  # VAL ACC: 53.4 %
+print('Test set accuracy: ', (y_test_pred == data['y_test']).mean())      # TEST ACC: 50.4%
 
