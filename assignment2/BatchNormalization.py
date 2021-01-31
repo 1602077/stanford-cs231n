@@ -211,7 +211,6 @@ for reg in [0, 3.14]:
     print('%s relative error: %.2e' % (name, rel_error(grad_num, grads[name])))
   if reg == 0: print()
 
-
 # # Batchnorm for deep networks
 print("\n****    BATCHNORM FOR DEEP NETS    ****")
 # Run the following to train a six-layer network on a subset of 1000 training examples both with and without batch normalization.
@@ -252,7 +251,6 @@ solver = Solver(model, small_data,
                 verbose=True, print_every=20)
 solver.train()
 
-
 # Run the following to visualize the results from two networks trained above. You should find that using batch normalization helps the network to converge much faster.
 
 
@@ -274,7 +272,7 @@ def plot_training_history(title, label, baseline, bn_solvers, plot_fn, bl_marker
     plt.plot(bl_plot, bl_marker, label=label)
     plt.legend(loc='lower center', ncol=num_bn+1) 
 
-    
+plt.figure()
 plt.subplot(3, 1, 1)
 plot_training_history('Training loss','Iteration', solver, [bn_solver],                       lambda x: x.loss_history, bl_marker='o', bn_marker='o')
 plt.subplot(3, 1, 2)
@@ -283,7 +281,7 @@ plt.subplot(3, 1, 3)
 plot_training_history('Validation accuracy','Epoch', solver, [bn_solver],                       lambda x: x.val_acc_history, bl_marker='-o', bn_marker='-o')
 
 plt.gcf().set_size_inches(15, 15)
-plt.savefig("q2_BN_6L_DeepNet_LossHistory.png")
+plt.savefig("q2a_BN_6L_DeepNet_LossHistory.png")
 
 
 # # Batch normalization and initialization
@@ -346,6 +344,7 @@ for ws in weight_scales:
   final_train_loss.append(np.mean(solvers_ws[ws].loss_history[-100:]))
   bn_final_train_loss.append(np.mean(bn_solvers_ws[ws].loss_history[-100:]))
   
+plt.figure()
 plt.subplot(3, 1, 1)
 plt.title('Best val accuracy vs weight initialization scale')
 plt.xlabel('Weight initialization scale')
@@ -372,7 +371,7 @@ plt.legend()
 plt.gca().set_ylim(1.0, 3.5)
 
 plt.gcf().set_size_inches(15, 15)
-plt.savefig("q2_BN_Init.png")
+plt.savefig("q2b_BN_Init.png")
 
 
 # # Batch normalization and batch size
@@ -428,39 +427,21 @@ def run_batchsize_experiments(normalization_mode):
 batch_sizes = [5,10,50]
 bn_solvers_bsize, solver_bsize, batch_sizes = run_batchsize_experiments('batchnorm')
 
+plt.figure()
 plt.subplot(2, 1, 1)
 plot_training_history('Training accuracy (Batch Normalization)','Epoch', solver_bsize, bn_solvers_bsize,                       lambda x: x.train_acc_history, bl_marker='-^', bn_marker='-o', labels=batch_sizes)
 plt.subplot(2, 1, 2)
 plot_training_history('Validation accuracy (Batch Normalization)','Epoch', solver_bsize, bn_solvers_bsize,                       lambda x: x.val_acc_history, bl_marker='-^', bn_marker='-o', labels=batch_sizes)
 
 plt.gcf().set_size_inches(15, 10)
-plt.show()
+plt.savefig("q2c_BN_ComparingBatchSize.png")
 
-
-# ## Inline Question 2:
-# Describe the results of this experiment. What does this imply about the relationship between batch normalization and batch size? Why is this relationship observed?
-# 
-# ## Answer:
-# [FILL THIS IN]
-# 
 
 # # Layer Normalization
 print("\n****    LAYER NORM    ****")
 # Batch normalization has proved to be effective in making networks easier to train, but the dependency on batch size makes it less useful in complex networks which have a cap on the input batch size due to hardware limitations. 
 # Several alternatives to batch normalization have been proposed to mitigate this problem; one such technique is Layer Normalization [2]. Instead of normalizing over the batch, we normalize over the features. In other words, when using Layer Normalization, each feature vector corresponding to a single datapoint is normalized based on the sum of all terms within that feature vector.
 # [2] [Ba, Jimmy Lei, Jamie Ryan Kiros, and Geoffrey E. Hinton. "Layer Normalization." stat 1050 (2016): 21.](https://arxiv.org/pdf/1607.06450.pdf)
-
-# ## Inline Question 3:
-# Which of these data preprocessing steps is analogous to batch normalization, and which is analogous to layer normalization?
-# 
-# 1. Scaling each image in the dataset, so that the RGB channels for each row of pixels within an image sums up to 1.
-# 2. Scaling each image in the dataset, so that the RGB channels for all pixels within an image sums up to 1.  
-# 3. Subtracting the mean image of the dataset from each image in the dataset.
-# 4. Setting all RGB values to either 0 or 1 depending on a given threshold.
-# 
-# ## Answer:
-# [FILL THIS IN]
-# 
 
 # # Layer Normalization: Implementation
 # 
@@ -541,11 +522,12 @@ print('dbeta error: ', rel_error(db_num, dbeta))
 
 ln_solvers_bsize, solver_bsize, batch_sizes = run_batchsize_experiments('layernorm')
 
+plt.figure()
 plt.subplot(2, 1, 1)
 plot_training_history('Training accuracy (Layer Normalization)','Epoch', solver_bsize, ln_solvers_bsize,                       lambda x: x.train_acc_history, bl_marker='-^', bn_marker='-o', labels=batch_sizes)
 plt.subplot(2, 1, 2)
 plot_training_history('Validation accuracy (Layer Normalization)','Epoch', solver_bsize, ln_solvers_bsize,                       lambda x: x.val_acc_history, bl_marker='-^', bn_marker='-o', labels=batch_sizes)
 
 plt.gcf().set_size_inches(15, 10)
-plt.show()
+plt.savefig("q2d_BN_ComparingLayerNormSize.png")
 
