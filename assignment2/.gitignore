@@ -3,3 +3,4 @@ requirements.txt
 collectSubmission.sh
 makepdf.py
 .DS_Store
+*.sh
