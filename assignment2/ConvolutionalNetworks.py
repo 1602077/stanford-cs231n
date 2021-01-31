@@ -4,13 +4,8 @@
 # # Convolutional Networks
 # 
 # So far we have worked with deep fully-connected networks, using them to explore different optimization strategies and network architectures. Fully-connected networks are a good testbed for experimentation because they are very computationally efficient, but in practice all state-of-the-art results use convolutional networks instead.
-# 
 # First you will implement several layer types that are used in convolutional networks. You will then use these layers to train a convolutional network on the CIFAR-10 dataset.
 
-# In[ ]:
-
-
-# As usual, a bit of setup
 import numpy as np
 import matplotlib.pyplot as plt
 from cs231n.classifiers.cnn import *
@@ -20,40 +15,16 @@ from cs231n.layers import *
 from cs231n.fast_layers import *
 from cs231n.solver import Solver
 
-get_ipython().magic('matplotlib inline')
-plt.rcParams['figure.figsize'] = (10.0, 8.0) # set default size of plots
-plt.rcParams['image.interpolation'] = 'nearest'
-plt.rcParams['image.cmap'] = 'gray'
-
-# for auto-reloading external modules
-# see http://stackoverflow.com/questions/1907993/autoreload-of-modules-in-ipython
-get_ipython().magic('load_ext autoreload')
-get_ipython().magic('autoreload 2')
-
 def rel_error(x, y):
-  """ returns relative error """
   return np.max(np.abs(x - y) / (np.maximum(1e-8, np.abs(x) + np.abs(y))))
-
-
-# In[ ]:
-
-
-# Load the (preprocessed) CIFAR10 data.
 
 data = get_CIFAR10_data()
 for k, v in data.items():
   print('%s: ' % k, v.shape)
 
-
-# # Convolution: Naive forward pass
-# The core of a convolutional network is the convolution operation. In the file `cs231n/layers.py`, implement the forward pass for the convolution layer in the function `conv_forward_naive`. 
-# 
-# You don't have to worry too much about efficiency at this point; just write the code in whatever way you find most clear.
-# 
+print("\nConvolution: Naive forward pass")
+# The core of a convolutional network is the convolution operation. In the file `cs231n/layers.py`, implement the forward pass for the convolution layer in the function `conv_forward_naive`. You don't have to worry too much about efficiency at this point; just write the code in whatever way you find most clear.
 # You can test your implementation by running the following:
-
-# In[ ]:
-
 
 x_shape = (2, 3, 4, 4)
 w_shape = (3, 3, 4, 4)
@@ -80,27 +51,9 @@ correct_out = np.array([[[[-0.08759809, -0.10987781],
 print('Testing conv_forward_naive')
 print('difference: ', rel_error(out, correct_out))
 
-
 # # Aside: Image processing via convolutions
 # 
 # As fun way to both check your implementation and gain a better understanding of the type of operation that convolutional layers can perform, we will set up an input containing two images and manually set up filters that perform common image processing operations (grayscale conversion and edge detection). The convolution forward pass will apply these operations to each of the input images. We can then visualize the results as a sanity check.
-
-# ## Colab Users Only
-# 
-# Please execute the below cell to copy two cat images to the Colab VM.
-
-# In[ ]:
-
-
-# Colab users only!
-get_ipython().magic('mkdir -p cs231n/notebook_images')
-get_ipython().magic('cd drive/My\\ Drive/$FOLDERNAME/cs231n')
-get_ipython().magic('cp -r notebook_images/ /content/cs231n/')
-get_ipython().magic('cd /content/')
-
-
-# In[ ]:
-
 
 from imageio import imread
 from PIL import Image
@@ -148,6 +101,7 @@ def imshow_no_ax(img, normalize=True):
     plt.gca().axis('off')
 
 # Show the original images and the results of the conv operation
+plt.figure()
 plt.subplot(2, 3, 1)
 imshow_no_ax(puppy, normalize=False)
 plt.title('Original image')
@@ -163,16 +117,10 @@ plt.subplot(2, 3, 5)
 imshow_no_ax(out[1, 0])
 plt.subplot(2, 3, 6)
 imshow_no_ax(out[1, 1])
-plt.show()
+plt.savefig('q4a_cnn_image_manipulations.png', bbox_inches='tight', dpi=250)
 
-
-# # Convolution: Naive backward pass
-# Implement the backward pass for the convolution operation in the function `conv_backward_naive` in the file `cs231n/layers.py`. Again, you don't need to worry too much about computational efficiency.
-# 
-# When you are done, run the following to check your backward pass with a numeric gradient check.
-
-# In[ ]:
-
+print("\nConvolution: Naive backward pass")
+# Implement the backward pass for the convolution operation in the function `conv_backward_naive` in the file `cs231n/layers.py`. Again, you don't need to worry too much about computational efficiency. When you are done, run the following to check your backward pass with a numeric gradient check.
 
 np.random.seed(231)
 x = np.random.randn(4, 3, 5, 5)
@@ -194,14 +142,8 @@ print('dx error: ', rel_error(dx, dx_num))
 print('dw error: ', rel_error(dw, dw_num))
 print('db error: ', rel_error(db, db_num))
 
-
-# # Max-Pooling: Naive forward
+print("\nMax-Pooling: Naive forward")
 # Implement the forward pass for the max-pooling operation in the function `max_pool_forward_naive` in the file `cs231n/layers.py`. Again, don't worry too much about computational efficiency.
-# 
-# Check your implementation by running the following:
-
-# In[ ]:
-
 
 x_shape = (2, 3, 4, 4)
 x = np.linspace(-0.3, 0.4, num=np.prod(x_shape)).reshape(x_shape)
@@ -226,14 +168,8 @@ correct_out = np.array([[[[-0.26315789, -0.24842105],
 print('Testing max_pool_forward_naive function:')
 print('difference: ', rel_error(out, correct_out))
 
-
-# # Max-Pooling: Naive backward
+print("\nMax-Pooling: Naive backward")
 # Implement the backward pass for the max-pooling operation in the function `max_pool_backward_naive` in the file `cs231n/layers.py`. You don't need to worry about computational efficiency.
-# 
-# Check your implementation with numeric gradient checking by running the following:
-
-# In[ ]:
-
 
 np.random.seed(231)
 x = np.random.randn(3, 2, 8, 8)
@@ -249,8 +185,7 @@ dx = max_pool_backward_naive(dout, cache)
 print('Testing max_pool_backward_naive function:')
 print('dx error: ', rel_error(dx, dx_num))
 
-
-# # Fast layers
+print("\nFast layers")
 # 
 # Making convolution and pooling layers fast can be challenging. To spare you the pain, we've provided fast implementations of the forward and backward passes for convolution and pooling layers in the file `cs231n/fast_layers.py`.
 
@@ -274,21 +209,11 @@ print('dx error: ', rel_error(dx, dx_num))
 # 
 # Execute the cell below only only **ONCE**.
 
-# In[ ]:
-
-
-get_ipython().magic('cd drive/My\\ Drive/$FOLDERNAME/cs231n/')
-get_ipython().system('python setup.py build_ext --inplace')
-
-
 # The API for the fast versions of the convolution and pooling layers is exactly the same as the naive versions that you implemented above: the forward pass receives data, weights, and parameters and produces outputs and a cache object; the backward pass recieves upstream derivatives and the cache object and produces gradients with respect to the data and weights.
 # 
 # **NOTE:** The fast implementation for pooling will only perform optimally if the pooling regions are non-overlapping and tile the input. If these conditions are not met then the fast pooling implementation will not be much faster than the naive implementation.
 # 
 # You can compare the performance of the naive and fast versions of these layers by running the following:
-
-# In[ ]:
-
 
 # Rel errors should be around e-9 or less
 from cs231n.fast_layers import conv_forward_fast, conv_backward_fast
@@ -326,10 +251,6 @@ print('dx difference: ', rel_error(dx_naive, dx_fast))
 print('dw difference: ', rel_error(dw_naive, dw_fast))
 print('db difference: ', rel_error(db_naive, db_fast))
 
-
-# In[ ]:
-
-
 # Relative errors should be close to 0.0
 from cs231n.fast_layers import max_pool_forward_fast, max_pool_backward_fast
 np.random.seed(231)
@@ -365,9 +286,6 @@ print('dx difference: ', rel_error(dx_naive, dx_fast))
 # # Convolutional "sandwich" layers
 # Previously we introduced the concept of "sandwich" layers that combine multiple operations into commonly used patterns. In the file `cs231n/layer_utils.py` you will find sandwich layers that implement a few commonly used patterns for convolutional networks. Run the cells below to sanity check they're working.
 
-# In[ ]:
-
-
 from cs231n.layer_utils import conv_relu_pool_forward, conv_relu_pool_backward
 np.random.seed(231)
 x = np.random.randn(2, 3, 16, 16)
@@ -389,10 +307,6 @@ print('Testing conv_relu_pool')
 print('dx error: ', rel_error(dx_num, dx))
 print('dw error: ', rel_error(dw_num, dw))
 print('db error: ', rel_error(db_num, db))
-
-
-# In[ ]:
-
 
 from cs231n.layer_utils import conv_relu_forward, conv_relu_backward
 np.random.seed(231)
@@ -424,9 +338,6 @@ print('db error: ', rel_error(db_num, db))
 # ## Sanity check loss
 # After you build a new network, one of the first things you should do is sanity check the loss. When we use the softmax loss, we expect the loss for random weights (and no regularization) to be about `log(C)` for `C` classes. When we add regularization the loss should go up slightly.
 
-# In[ ]:
-
-
 model = ThreeLayerConvNet()
 
 N = 50
@@ -443,9 +354,6 @@ print('Initial loss (with regularization): ', loss)
 
 # ## Gradient check
 # After the loss looks reasonable, use numeric gradient checking to make sure that your backward pass is correct. When you use numeric gradient checking you should use a small amount of artifical data and a small number of neurons at each layer. Note: correct implementations may still have relative errors up to the order of e-2.
-
-# In[ ]:
-
 
 num_inputs = 2
 input_dim = (3, 16, 16)
@@ -635,10 +543,6 @@ print('  Shape: ', out.shape)
 print('  Means: ', out.mean(axis=(0, 2, 3)))
 print('  Stds: ', out.std(axis=(0, 2, 3)))
 
-
-# In[ ]:
-
-
 np.random.seed(231)
 # Check the test-time forward pass by running the training-time
 # forward pass many times to warm up the running averages, and then
@@ -665,9 +569,6 @@ print('  stds: ', a_norm.std(axis=(0, 2, 3)))
 
 # ## Spatial batch normalization: backward
 # In the file `cs231n/layers.py`, implement the backward pass for spatial batch normalization in the function `spatial_batchnorm_backward`. Run the following to check your implementation using a numeric gradient check:
-
-# In[ ]:
-
 
 np.random.seed(231)
 N, C, H, W = 2, 3, 4, 5
@@ -725,9 +626,6 @@ print('dbeta error: ', rel_error(db_num, dbeta))
 # 
 # In the file `cs231n/layers.py`, implement the forward pass for group normalization in the function `spatial_groupnorm_forward`. Check your implementation by running the following:
 
-# In[ ]:
-
-
 np.random.seed(231)
 # Check the training-time forward pass by checking means and variances
 # of features both before and after spatial batch normalization
@@ -752,12 +650,8 @@ print('  Shape: ', out.shape)
 print('  Means: ', out_g.mean(axis=1))
 print('  Stds: ', out_g.std(axis=1))
 
-
 # ## Spatial group normalization: backward
 # In the file `cs231n/layers.py`, implement the backward pass for spatial batch normalization in the function `spatial_groupnorm_backward`. Run the following to check your implementation using a numeric gradient check:
-
-# In[ ]:
-
 
 np.random.seed(231)
 N, C, H, W = 2, 6, 4, 5
