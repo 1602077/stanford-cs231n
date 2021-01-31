@@ -103,7 +103,6 @@ print('dx error: ', rel_error(dx_num, dx))
 print('dw error: ', rel_error(dw_num, dw))
 print('db error: ', rel_error(db_num, db))
 
-
 # # ReLU activation: forward
 # Implement the forward pass for the ReLU activation function in the `relu_forward` function and test your implementation using the following:
 # Test the relu_forward function
@@ -117,7 +116,6 @@ correct_out = np.array([[ 0.,          0.,          0.,          0.,        ],
 # Compare your output with ours. The error should be on the order of e-8
 print('\n****     Testing relu_forward function   ****')
 print('difference: ', rel_error(out, correct_out))
-
 
 # # ReLU activation: backward
 # Now implement the backward pass for the ReLU activation function in the `relu_backward` function and test your implementation using numeric gradient checking:
@@ -246,7 +244,6 @@ for reg in [0.0, 0.7]:
 model = TwoLayerNet()
 solver = None
 best_val = 0
-
 ##############################################################################
 # TODO: Use a Solver instance to train a TwoLayerNet that achieves at least  #
 # 50% accuracy on the validation set.                                        #
@@ -273,34 +270,32 @@ best_val = 0
 #    print('lr %e; reg %e; hid %d; val accuracy %f' % (lr, reg, hidden, val_acc))
 #print('Best validaton acc achieved in training:', best_val)
 
-##      COMMENTED BELOW FOR SPEEDING UP RUN TIME
-#lr, reg, hidden =  8.069800e-04, 1.774396e-04, 80
-#model = TwoLayerNet(hidden_dim = hidden, reg = reg)
-#solver = Solver(model, data, update_rule='sgd', optim_config={'learning_rate': lr}, lr_decay=0.95, num_epochs=20, batch_size=200, print_every=-1, verbose=False)
-#solver.train()
-#val_acc = solver.best_val_acc
-#print('Best validation accuracy:', val_acc) # 53.3%
+lr, reg, hidden =  8.069800e-04, 1.774396e-04, 80
+model = TwoLayerNet(hidden_dim = hidden, reg = reg)
+solver = Solver(model, data, update_rule='sgd', optim_config={'learning_rate': lr}, lr_decay=0.95, num_epochs=20, batch_size=200, print_every=-1, verbose=False)
+solver.train()
+val_acc = solver.best_val_acc
+print('Best validation accuracy:', val_acc) # 53.3%
 # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 ##############################################################################
 #                             END OF YOUR CODE                               #
 ##############################################################################
 # Run this cell to visualize training loss and train / val accuracy
+plt.figure()
+plt.subplot(2, 1, 1)
+plt.title('Training loss')
+plt.plot(solver.loss_history, 'o')
+plt.xlabel('Iteration')
 
-#plt.subplot(2, 1, 1)
-#plt.title('Training loss')
-#plt.plot(solver.loss_history, 'o')
-#plt.xlabel('Iteration')
-#
-#plt.subplot(2, 1, 2)
-#plt.title('Accuracy')
-#plt.plot(solver.train_acc_history, '-o', label='train')
-#plt.plot(solver.val_acc_history, '-o', label='val')
-#plt.plot([0.5] * len(solver.val_acc_history), 'k--')
-#plt.xlabel('Epoch')
-#plt.legend(loc='lower right')
-#plt.gcf().set_size_inches(15, 12)
-#plt.savefig('q1_FCNN_LossAccuracy.png')
-#####       COMMENTED ABOVE FOR SPEED
+plt.subplot(2, 1, 2)
+plt.title('Accuracy')
+plt.plot(solver.train_acc_history, '-o', label='train')
+plt.plot(solver.val_acc_history, '-o', label='val')
+plt.plot([0.5] * len(solver.val_acc_history), 'k--')
+plt.xlabel('Epoch')
+plt.legend(loc='lower right')
+plt.gcf().set_size_inches(15, 12)
+plt.savefig('q1_FCNN_LossAccuracy.png')
 
 # # Multilayer network
 # Next you will implement a fully-connected network with an arbitrary number of hidden layers.
@@ -380,6 +375,7 @@ solver = Solver(model, small_data,
          )
 solver.train()
 
+plt.figure()
 plt.plot(solver.loss_history, 'o')
 plt.title('Training loss history')
 plt.xlabel('Iteration')
@@ -431,6 +427,7 @@ solver = Solver(model, small_data,
          )
 solver.train()
 
+plt.figure()
 plt.plot(solver.loss_history, 'o')
 plt.title('Training loss history')
 plt.xlabel('Iteration')
