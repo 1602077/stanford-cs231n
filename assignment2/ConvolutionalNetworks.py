@@ -185,7 +185,7 @@ dx = max_pool_backward_naive(dout, cache)
 print('Testing max_pool_backward_naive function:')
 print('dx error: ', rel_error(dx, dx_num))
 
-print("\nFast layers")
+print("\nFAST LAYERS IMPLIMENTATION")
 # 
 # Making convolution and pooling layers fast can be challenging. To spare you the pain, we've provided fast implementations of the forward and backward passes for convolution and pooling layers in the file `cs231n/fast_layers.py`.
 
@@ -330,7 +330,7 @@ print('dw error: ', rel_error(dw_num, dw))
 print('db error: ', rel_error(db_num, db))
 
 
-# # Three-layer ConvNet
+print('\n3-LAYER CONV NET')
 # Now that you have implemented all the necessary layers, we can put them together into a simple convolutional network.
 # 
 # Open the file `cs231n/classifiers/cnn.py` and complete the implementation of the `ThreeLayerConvNet` class. Remember you can use the fast/sandwich layers (already imported for you) in your implementation. Run the following cells to help you debug:
@@ -350,7 +350,6 @@ print('Initial loss (no regularization): ', loss)
 model.reg = 0.5
 loss, grads = model.loss(X, y)
 print('Initial loss (with regularization): ', loss)
-
 
 # ## Gradient check
 # After the loss looks reasonable, use numeric gradient checking to make sure that your backward pass is correct. When you use numeric gradient checking you should use a small amount of artifical data and a small number of neurons at each layer. Note: correct implementations may still have relative errors up to the order of e-2.
@@ -375,15 +374,10 @@ for param_name in sorted(grads):
     e = rel_error(param_grad_num, grads[param_name])
     print('%s max relative error: %e' % (param_name, rel_error(param_grad_num, grads[param_name])))
 
-
-# ## Overfit small data
+print("\nOVERFITTING A SUBSET OF DATA")
 # A nice trick is to train your model with just a few training samples. You should be able to overfit small datasets, which will result in very high training accuracy and comparatively low validation accuracy.
 
-# In[ ]:
-
-
 np.random.seed(231)
-
 num_train = 100
 small_data = {
   'X_train': data['X_train'][:num_train],
@@ -403,31 +397,15 @@ solver = Solver(model, small_data,
                 verbose=True, print_every=1)
 solver.train()
 
-
-# In[ ]:
-
-
-# Print final training accuracy
 print(
     "Small data training accuracy:",
     solver.check_accuracy(small_data['X_train'], small_data['y_train'])
 )
 
-
-# In[ ]:
-
-
-# Print final validation accuracy
 print(
     "Small data validation accuracy:",
     solver.check_accuracy(small_data['X_val'], small_data['y_val'])
 )
-
-
-# Plotting the loss, training accuracy, and validation accuracy should show clear overfitting:
-
-# In[ ]:
-
 
 plt.subplot(2, 1, 1)
 plt.plot(solver.loss_history, 'o')
@@ -440,14 +418,11 @@ plt.plot(solver.val_acc_history, '-o')
 plt.legend(['train', 'val'], loc='upper left')
 plt.xlabel('epoch')
 plt.ylabel('accuracy')
-plt.show()
+plt.savefig('q4b_cnn_overfitting_accuracies.png', dpi=250, bbox_inches='tight')
 
 
-# ## Train the net
+print('\nTRAINING ON FULL DATASET')
 # By training the three-layer convolutional network for one epoch, you should achieve greater than 40% accuracy on the training set:
-
-# In[ ]:
-
 
 model = ThreeLayerConvNet(weight_scale=0.001, hidden_dim=500, reg=0.001)
 
@@ -460,41 +435,27 @@ solver = Solver(model, data,
                 verbose=True, print_every=20)
 solver.train()
 
-
-# In[ ]:
-
-
-# Print final training accuracy
 print(
     "Full data training accuracy:",
     solver.check_accuracy(small_data['X_train'], small_data['y_train'])
 )
 
-
-# In[ ]:
-
-
-# Print final validation accuracy
 print(
     "Full data validation accuracy:",
     solver.check_accuracy(data['X_val'], data['y_val'])
 )
 
-
 # ## Visualize Filters
 # You can visualize the first-layer convolutional filters from the trained network by running the following:
-
-# In[ ]:
-
 
 from cs231n.vis_utils import visualize_grid
 
 grid = visualize_grid(model.params['W1'].transpose(0, 2, 3, 1))
+plt.figure()
 plt.imshow(grid.astype('uint8'))
 plt.axis('off')
 plt.gcf().set_size_inches(5, 5)
-plt.show()
-
+plt.savefig('q4c_cnn_VisualisingFilters.png', dpi=250, bbox_inches='tight')
 
 # # Spatial Batch Normalization
 # We already saw that batch normalization is a very useful technique for training deep fully-connected networks. As proposed in the original paper (link in `BatchNormalization.ipynb`), batch normalization can also be used for convolutional networks, but we need to tweak it a bit; the modification will be called "spatial batch normalization."
@@ -510,8 +471,6 @@ plt.show()
 # ## Spatial batch normalization: forward
 # 
 # In the file `cs231n/layers.py`, implement the forward pass for spatial batch normalization in the function `spatial_batchnorm_forward`. Check your implementation by running the following:
-
-# In[ ]:
 
 
 np.random.seed(231)
@@ -592,7 +551,6 @@ dx, dgamma, dbeta = spatial_batchnorm_backward(dout, cache)
 print('dx error: ', rel_error(dx_num, dx))
 print('dgamma error: ', rel_error(da_num, dgamma))
 print('dbeta error: ', rel_error(db_num, dbeta))
-
 
 # # Group Normalization
 # In the previous notebook, we mentioned that Layer Normalization is an alternative normalization technique that mitigates the batch size limitations of Batch Normalization. However, as the authors of [2] observed, Layer Normalization does not perform as well as Batch Normalization when used with Convolutional Layers:
