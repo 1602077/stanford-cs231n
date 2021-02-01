@@ -6,22 +6,7 @@
 
 # ## Install h5py
 # The COCO dataset we will be using is stored in HDF5 format. To load HDF5 files, we will need to install the `h5py` Python package. From the command line, run: <br/>
-# `pip install h5py`  <br/>
-# If you receive a permissions error, you may need to run the command as root: <br/>
-# ```sudo pip install h5py```
-# 
-# You can also run commands directly from the Jupyter notebook by prefixing the command with the "!" character:
 
-# In[ ]:
-
-
-get_ipython().system('pip install h5py')
-
-
-# In[ ]:
-
-
-# As usual, a bit of setup
 import time, os, json
 import numpy as np
 import matplotlib.pyplot as plt
@@ -33,15 +18,9 @@ from cs231n.classifiers.rnn import CaptioningRNN
 from cs231n.coco_utils import load_coco_data, sample_coco_minibatch, decode_captions
 from cs231n.image_utils import image_from_url
 
-get_ipython().magic('matplotlib inline')
 plt.rcParams['figure.figsize'] = (10.0, 8.0) # set default size of plots
 plt.rcParams['image.interpolation'] = 'nearest'
 plt.rcParams['image.cmap'] = 'gray'
-
-# for auto-reloading external modules
-# see http://stackoverflow.com/questions/1907993/autoreload-of-modules-in-ipython
-get_ipython().magic('load_ext autoreload')
-get_ipython().magic('autoreload 2')
 
 def rel_error(x, y):
     """ returns relative error """
@@ -63,9 +42,6 @@ def rel_error(x, y):
 # 
 # You can load all of the MS-COCO data (captions, features, URLs, and vocabulary) using the `load_coco_data` function from the file `cs231n/coco_utils.py`. Run the following cell to do so:
 
-# In[ ]:
-
-
 # Load COCO data from disk; this returns a dictionary
 # We'll work with dimensionality-reduced features for this notebook, but feel
 # free to experiment with the original features by changing the flag below.
@@ -78,7 +54,6 @@ for k, v in data.items():
     else:
         print(k, type(v), len(v))
 
-
 # ## Look at the data
 # It is always a good idea to look at examples from the dataset before working with it.
 # 
@@ -86,22 +61,19 @@ for k, v in data.items():
 # 
 # Note that we decode the captions using the `decode_captions` function and that we download the images on-the-fly using their Flickr URL, so **you must be connected to the internet to view images**.
 
-# In[ ]:
-
-
 # Sample a minibatch and show the images and captions
 batch_size = 3
 
 captions, features, urls = sample_coco_minibatch(data, batch_size=batch_size)
+plt.figure()
 for i, (caption, url) in enumerate(zip(captions, urls)):
     plt.imshow(image_from_url(url))
     plt.axis('off')
     caption_str = decode_captions(caption, data['idx_to_word'])
     plt.title(caption_str)
-    plt.show()
+    plt.savefig('q1_RNN_imagepreview.png', bbox_inches='tight', dpi=250)
 
-
-# # Recurrent Neural Networks
+print('\nRECURRENT NEURAL NETWORK')
 # As discussed in lecture, we will use recurrent neural network (RNN) language models for image captioning. The file `cs231n/rnn_layers.py` contains implementations of different layer types that are needed for recurrent neural networks, and the file `cs231n/classifiers/rnn.py` uses these layers to implement an image captioning model.
 # 
 # We will first implement different types of RNN layers in `cs231n/rnn_layers.py`.
@@ -110,9 +82,6 @@ for i, (caption, url) in enumerate(zip(captions, urls)):
 # Open the file `cs231n/rnn_layers.py`. This file implements the forward and backward passes for different types of layers that are commonly used in recurrent neural networks.
 # 
 # First implement the function `rnn_step_forward` which implements the forward pass for a single timestep of a vanilla recurrent neural network. After doing so run the following to check your implementation. You should see errors on the order of e-8 or less.
-
-# In[ ]:
-
 
 N, D, H = 3, 10, 4
 
@@ -129,13 +98,10 @@ expected_next_h = np.asarray([
   [ 0.97934501,  0.99144213,  0.99646691,  0.99854353]])
 
 print('next_h error: ', rel_error(expected_next_h, next_h))
-
+# next_h error:  6.292421426471037e-09
 
 # # Vanilla RNN: step backward
 # In the file `cs231n/rnn_layers.py` implement the `rnn_step_backward` function. After doing so run the following to numerically gradient check your implementation. You should see errors on the order of `e-8` or less.
-
-# In[ ]:
-
 
 from cs231n.rnn_layers import rnn_step_forward, rnn_step_backward
 np.random.seed(231)
@@ -169,15 +135,16 @@ print('dprev_h error: ', rel_error(dprev_h_num, dprev_h))
 print('dWx error: ', rel_error(dWx_num, dWx))
 print('dWh error: ', rel_error(dWh_num, dWh))
 print('db error: ', rel_error(db_num, db))
-
+#dx error:  2.319932372313319e-10
+#dprev_h error:  2.6828355645784327e-10
+#dWx error:  8.820244454238703e-10
+#dWh error:  4.703287554560559e-10
+#db error:  1.5956895526227225e-11
 
 # # Vanilla RNN: forward
 # Now that you have implemented the forward and backward passes for a single timestep of a vanilla RNN, you will combine these pieces to implement a RNN that processes an entire sequence of data.
 # 
 # In the file `cs231n/rnn_layers.py`, implement the function `rnn_forward`. This should be implemented using the `rnn_step_forward` function that you defined above. After doing so run the following to check your implementation. You should see errors on the order of `e-7` or less.
-
-# In[ ]:
-
 
 N, T, D, H = 2, 3, 4, 5
 
@@ -199,13 +166,10 @@ expected_h = np.asarray([
     [-0.27150199, -0.07088804,  0.13562939,  0.33099728,  0.50158768],
     [-0.51014825, -0.30524429, -0.06755202,  0.17806392,  0.40333043]]])
 print('h error: ', rel_error(expected_h, h))
-
+# h error:  7.728466151011529e-08
 
 # # Vanilla RNN: backward
 # In the file `cs231n/rnn_layers.py`, implement the backward pass for a vanilla RNN in the function `rnn_backward`. This should run back-propagation over the entire sequence, making calls to the `rnn_step_backward` function that you defined earlier. You should see errors on the order of e-6 or less.
-
-# In[ ]:
-
 
 np.random.seed(231)
 
@@ -240,15 +204,16 @@ print('dh0 error: ', rel_error(dh0_num, dh0))
 print('dWx error: ', rel_error(dWx_num, dWx))
 print('dWh error: ', rel_error(dWh_num, dWh))
 print('db error: ', rel_error(db_num, db))
-
+#dx error:  1.5402322184213243e-09
+#dh0 error:  3.3824326261334578e-09
+#dWx error:  7.238350796069372e-09
+#dWh error:  1.3157659173166636e-07
+#db error:  1.5353591509855146e-10
 
 # # Word embedding: forward
 # In deep learning systems, we commonly represent words using vectors. Each word of the vocabulary will be associated with a vector, and these vectors will be learned jointly with the rest of the system.
 # 
 # In the file `cs231n/rnn_layers.py`, implement the function `word_embedding_forward` to convert words (represented by integers) into vectors. Run the following to check your implementation. You should see an error on the order of `e-8` or less.
-
-# In[ ]:
-
 
 N, T, V, D = 2, 4, 5, 3
 
@@ -272,9 +237,6 @@ print('out error: ', rel_error(expected_out, out))
 # # Word embedding: backward
 # Implement the backward pass for the word embedding function in the function `word_embedding_backward`. After doing so run the following to numerically gradient check your implementation. You should see an error on the order of `e-11` or less.
 
-# In[ ]:
-
-
 np.random.seed(231)
 
 N, T, V, D = 50, 3, 5, 6
@@ -289,13 +251,10 @@ f = lambda W: word_embedding_forward(x, W)[0]
 dW_num = eval_numerical_gradient_array(f, W, dout)
 
 print('dW error: ', rel_error(dW, dW_num))
-
+# dW error:  3.2774595693100364e-12
 
 # # Temporal Affine layer
 # At every timestep we use an affine function to transform the RNN hidden vector at that timestep into scores for each word in the vocabulary. Because this is very similar to the affine layer that you implemented in assignment 2, we have provided this function for you in the `temporal_affine_forward` and `temporal_affine_backward` functions in the file `cs231n/rnn_layers.py`. Run the following to perform numeric gradient checking on the implementation. You should see errors on the order of e-9 or less.
-
-# In[ ]:
-
 
 np.random.seed(231)
 
@@ -322,7 +281,9 @@ dx, dw, db = temporal_affine_backward(dout, cache)
 print('dx error: ', rel_error(dx_num, dx))
 print('dw error: ', rel_error(dw_num, dw))
 print('db error: ', rel_error(db_num, db))
-
+#dx error:  2.9215945034030545e-10
+#dw error:  1.5772088618663602e-10
+#db error:  3.252200556967514e-11
 
 # # Temporal Softmax loss
 # In an RNN language model, at every timestep we produce a score for each word in the vocabulary. We know the ground-truth word at each timestep, so we use a softmax loss function to compute loss and gradient at each timestep. We sum the losses over time and average them over the minibatch.
@@ -332,9 +293,6 @@ print('db error: ', rel_error(db_num, db))
 # Since this is very similar to the softmax loss function you implemented in assignment 1, we have implemented this loss function for you; look at the `temporal_softmax_loss` function in the file `cs231n/rnn_layers.py`.
 # 
 # Run the following cell to sanity check the loss and perform numeric gradient checking on the function. You should see an error for dx on the order of e-7 or less.
-
-# In[ ]:
-
 
 # Sanity check for temporal softmax loss
 from cs231n.rnn_layers import temporal_softmax_loss
@@ -350,7 +308,9 @@ def check_loss(N, T, V, p):
 check_loss(100, 1, 10, 1.0)   # Should be about 2.3
 check_loss(100, 10, 10, 1.0)  # Should be about 23
 check_loss(5000, 10, 10, 0.1) # Should be within 2.2-2.4
-
+#2.3027781774290146
+#23.025985953127226
+#2.2643611790293394
 # Gradient check for temporal softmax loss
 N, T, V = 7, 8, 9
 
@@ -363,15 +323,12 @@ loss, dx = temporal_softmax_loss(x, y, mask, verbose=False)
 dx_num = eval_numerical_gradient(lambda x: temporal_softmax_loss(x, y, mask)[0], x, verbose=False)
 
 print('dx error: ', rel_error(dx, dx_num))
-
+# dx error:  2.583585303524283e-08
 
 # # RNN for image captioning
 # Now that you have implemented the necessary layers, you can combine them to build an image captioning model. Open the file `cs231n/classifiers/rnn.py` and look at the `CaptioningRNN` class.
 # 
 # Implement the forward and backward pass of the model in the `loss` function. For now you only need to implement the case where `cell_type='rnn'` for vanialla RNNs; you will implement the LSTM case later. After doing so, run the following to check your forward pass using a small test case; you should see error on the order of `e-10` or less.
-
-# In[ ]:
-
 
 N, D, W, H = 10, 20, 30, 40
 word_to_idx = {'<NULL>': 0, 'cat': 2, 'dog': 3}
@@ -401,9 +358,6 @@ print('difference: ', abs(loss - expected_loss))
 
 
 # Run the following cell to perform numeric gradient checking on the `CaptioningRNN` class; you should see errors around the order of `e-6` or less.
-
-# In[ ]:
-
 
 np.random.seed(231)
 
@@ -440,9 +394,6 @@ for param_name in sorted(grads):
 # 
 # Once you have familiarized yourself with the API, run the following to make sure your model overfits a small sample of 100 training examples. You should see a final loss of less than 0.1.
 
-# In[ ]:
-
-
 np.random.seed(231)
 
 small_data = load_coco_data(max_train=50)
@@ -478,9 +429,6 @@ plt.show()
 
 # Print final training loss. You should see a final loss of less than 0.1.
 
-# In[ ]:
-
-
 print('Final loss: ', small_rnn_solver.loss_history[-1])
 
 
@@ -488,9 +436,6 @@ print('Final loss: ', small_rnn_solver.loss_history[-1])
 # Unlike classification models, image captioning models behave very differently at training time and at test time. At training time, we have access to the ground-truth caption, so we feed ground-truth words as input to the RNN at each timestep. At test time, we sample from the distribution over the vocabulary at each timestep, and feed the sample as input to the RNN at the next timestep.
 # 
 # In the file `cs231n/classifiers/rnn.py`, implement the `sample` method for test-time sampling. After doing so, run the following to sample from your overfitted model on both training and validation data. The samples on training data should be very good; the samples on validation data probably won't make sense.
-
-# In[ ]:
-
 
 for split in ['train', 'val']:
     minibatch = sample_coco_minibatch(small_data, split=split, batch_size=2)
