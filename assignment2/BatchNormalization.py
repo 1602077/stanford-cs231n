@@ -281,7 +281,7 @@ plt.subplot(3, 1, 3)
 plot_training_history('Validation accuracy','Epoch', solver, [bn_solver],                       lambda x: x.val_acc_history, bl_marker='-o', bn_marker='-o')
 
 plt.gcf().set_size_inches(15, 15)
-plt.savefig("q2a_BN_6L_DeepNet_LossHistory.png")
+plt.savefig("q2a_BN_6L_DeepNet_LossHistory.png", dpi=250, bbox_inches='tight')
 
 
 # # Batch normalization and initialization
@@ -371,7 +371,7 @@ plt.legend()
 plt.gca().set_ylim(1.0, 3.5)
 
 plt.gcf().set_size_inches(15, 15)
-plt.savefig("q2b_BN_Init.png")
+plt.savefig("q2b_BN_Init.png", dpi=250, bbox_inches='tight')
 
 
 # # Batch normalization and batch size
@@ -434,7 +434,7 @@ plt.subplot(2, 1, 2)
 plot_training_history('Validation accuracy (Batch Normalization)','Epoch', solver_bsize, bn_solvers_bsize,                       lambda x: x.val_acc_history, bl_marker='-^', bn_marker='-o', labels=batch_sizes)
 
 plt.gcf().set_size_inches(15, 10)
-plt.savefig("q2c_BN_ComparingBatchSize.png")
+plt.savefig("q2c_BN_ComparingBatchSize.png", dpi=250, bbox_inches='tight')
 
 
 # # Layer Normalization
@@ -529,5 +529,5 @@ plt.subplot(2, 1, 2)
 plot_training_history('Validation accuracy (Layer Normalization)','Epoch', solver_bsize, ln_solvers_bsize,                       lambda x: x.val_acc_history, bl_marker='-^', bn_marker='-o', labels=batch_sizes)
 
 plt.gcf().set_size_inches(15, 10)
-plt.savefig("q2d_BN_ComparingLayerNormSize.png")
+plt.savefig("q2d_BN_ComparingLayerNormSize.png", dpi=250, bbox_inches='tight')
 

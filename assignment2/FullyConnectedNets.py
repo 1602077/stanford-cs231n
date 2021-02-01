@@ -295,7 +295,7 @@ plt.plot([0.5] * len(solver.val_acc_history), 'k--')
 plt.xlabel('Epoch')
 plt.legend(loc='lower right')
 plt.gcf().set_size_inches(15, 12)
-plt.savefig('q1_FCNN_LossAccuracy.png')
+plt.savefig('q1a_FCNN_LossAccuracy.png', bbox_inches='tight', dpi=250)
 
 # # Multilayer network
 # Next you will implement a fully-connected network with an arbitrary number of hidden layers.
@@ -380,7 +380,7 @@ plt.plot(solver.loss_history, 'o')
 plt.title('Training loss history')
 plt.xlabel('Iteration')
 plt.ylabel('Training loss')
-plt.savefig('q1_FCNN_3-NN_Loss.png')
+plt.savefig('q1b_FCNN_3-NN_Loss.png', bbox_inches='tight', dpi=250)
 
 # Now try to use a five-layer network with 100 units on each layer to overfit 50 training examples. Again, you will have to adjust the learning rate and weight initialization scale, but you should be able to achieve 100% training accuracy within 20 epochs.
 # TODO: Use a five-layer Net to overfit 50 training examples by 
@@ -432,7 +432,7 @@ plt.plot(solver.loss_history, 'o')
 plt.title('Training loss history')
 plt.xlabel('Iteration')
 plt.ylabel('Training loss')
-plt.savefig('q1_FCNN_5-NN_Loss.png')
+plt.savefig('q1c_FCNN_5-NN_Loss.png', bbox_inches='tight', dpi=250)
 
 # # Update rules
 # So far we have used vanilla stochastic gradient descent (SGD) as our update rule. More sophisticated update rules can make it easier to train deep networks. We will implement a few of the most commonly used update rules and compare them to vanilla SGD.
@@ -520,7 +520,7 @@ for i in [1, 2, 3]:
   plt.subplot(3, 1, i)
   plt.legend(loc='upper center', ncol=4)
 plt.gcf().set_size_inches(15, 15)
-plt.savefig('q1_FCNN_sgd_v_sgd+mom_comparison.png')
+plt.savefig('q1d_FCNN_sgd_v_sgd+mom_comparison.png', bbox_inches='tight', dpi=250)
 
 # # RMSProp and Adam
 # RMSProp [1] and Adam [2] are update rules that set per-parameter learning rates by using a running average of the second moments of gradients.
@@ -632,7 +632,7 @@ for i in [1, 2, 3]:
   plt.subplot(3, 1, i)
   plt.legend(loc='upper center', ncol=4)
 plt.gcf().set_size_inches(15, 15)
-plt.savefig("q1_FCNN_adam_v_RMSprop_comparison.png")
+plt.savefig("q1e_FCNN_adam_v_RMSprop_comparison.png", bbox_inches='tight', dpi=250)
 
 # Train the best fully-connected model that you can on CIFAR-10, storing your best model in the `best_model` variable. We require you to get at least 50% accuracy on the validation set using a fully-connected net.
 # If you are careful it should be possible to get accuracies above 55%, but we don't require it for this part and won't assign extra credit for doing so. Later in the assignment we will ask you to train the best convolutional network that you can on CIFAR-10, and we would prefer that you spend your effort working on convolutional nets rather than fully-connected nets.

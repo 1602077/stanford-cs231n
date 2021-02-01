@@ -332,7 +332,6 @@ print('db error: ', rel_error(db_num, db))
 
 print('\n3-LAYER CONV NET')
 # Now that you have implemented all the necessary layers, we can put them together into a simple convolutional network.
-# 
 # Open the file `cs231n/classifiers/cnn.py` and complete the implementation of the `ThreeLayerConvNet` class. Remember you can use the fast/sandwich layers (already imported for you) in your implementation. Run the following cells to help you debug:
 
 # ## Sanity check loss

@@ -142,7 +142,7 @@ plt.ylabel('Accuracy')
 plt.legend(ncol=2, loc='lower right')
 
 plt.gcf().set_size_inches(15, 15)
-plt.savefig("q3_Dropout_Train_val_Accuracies.png")
+plt.savefig("q3_Dropout_Train_val_Accuracies.png", bbox_inches='tight')
 
 # ## Inline Question 2:
 # Compare the validation and training accuracies with and without dropout -- what do your results suggest about dropout as a regularizer?
