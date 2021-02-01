@@ -1,0 +1,4 @@
+*.sh
+frameworkpython
+makepdf.py
+*.npz
