@@ -6,7 +6,7 @@ Problems from the [Spring 2020 Course](http://cs231n.stanford.edu)
 
 Assignment 1: Complete
 
-Assignment 2: In Progress
+Assignment 2: Complete
 
-Assignnent 3: Not Started
+Assignnent 3: In Progress
 
