@@ -242,7 +242,7 @@ class CaptioningRNN(object):
         # feed in <START> token
         captions[:, 0] = self._start
 
-        prev_h, _ = affine_foward(features, w_proj, b_proj)
+        prev_h, _ = affine_forward(features, W_proj, b_proj)
         # lstm requires zero init state
         if self.cell_type == 'ltsm':
             prev_cell = np.zeros_like(prev_h)
@@ -253,9 +253,9 @@ class CaptioningRNN(object):
             word_embed, _ = word_embedding_forward(captions[:, i-1], W_embed)
             # (2)
             if self.cell_type == 'rnn':
-                next_h, _ == rnn_step_forward(word_embed, prev_h, Wx, Wh, b)
+                next_h, _ = rnn_step_forward(word_embed, prev_h, Wx, Wh, b)
             elif self.cell_type =='lstm':
-                next_h, next_cell, _ = lstm_step_forward(word_embed, prev_h, prev_C, Wx, Wh, b)
+                next_h, next_cell, _ = lstm_step_forward(word_embed, prev_h, prev_cell, Wx, Wh, b)
                 prev_cell = next_cell
             # (3)
             scores, _ = affine_forward(next_h, W_vocab, b_vocab)
