@@ -5,7 +5,6 @@ import numpy as np
 from ..layers import *
 from ..rnn_layers import *
 
-
 class CaptioningRNN(object):
     """
     A CaptioningRNN produces captions from image features using a recurrent
@@ -150,14 +149,36 @@ class CaptioningRNN(object):
         # in your implementation, if needed.                                       #
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+        # FORWARD PASS
+        # affine layer - IN: (N, D) - OUT: (N, H)
+        out1, c1 = affine_forward(features, W_proj, b_proj)
+        #word embedding layer - OUT: (N, T, W)
+        out2, c2 = word_embedding_forward(captions_in, W_embed)
+        #vanilla RNN or LSTM layer - OUT: (N, T, H)
+        if self.cell_type == 'rnn':
+            out3, c3 = rnn_forward(out2, out1, Wx, Wh, b)
+        elif self.cell_type == 'lstm':
+            out3, c3 = lstm_forward(ou2, out1, Wx, Wh, b)
+        #affine transformation - OUT: (N, T, V)
+        out4, c4 = temporal_affine_forward(out3, W_vocab, b_vocab)
+        #softmax using ignore <NULLS> using "mask" defined above
+        loss, dout4 = temporal_softmax_loss(out4, captions_out, mask)
 
-        pass
+        #BACKWARD PASS
+        dout3, grads['W_vocab'], grads['b_vocab'] = temporal_affine_backward(dout4, c4)
 
+        if self.cell_type == 'rnn':
+            dout2, dout1, grads['Wx'], grads['Wh'], grads['b'] = rnn_backward(dout3, c3)
+        elif self.cell_type == 'lstm':
+            dout2, dout1, grads['Wx'], grads['Wh'], grads['b'] = lstm_backward(dout3, c3)
+
+        grads['W_embed'] = word_embedding_backward(dout2, c2)
+
+        dout, grads['W_proj'], grads['b_proj'] = affine_backward(dout1, c1)
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
         #                             END OF YOUR CODE                             #
         ############################################################################
-
         return loss, grads
 
     def sample(self, features, max_length=30):
@@ -218,11 +239,32 @@ class CaptioningRNN(object):
         # you are using an LSTM, initialize the first cell state to zeros.        #
         ###########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+        # feed in <START> token
+        captions[:, 0] = self._start
 
-        pass
+        prev_h, _ = affine_foward(features, w_proj, b_proj)
+        # lstm requires zero init state
+        if self.cell_type == 'ltsm':
+            prev_cell = np.zeros_like(prev_h)
 
+        # iterate over each timestep
+        for i in range(1, max_length):
+            # (1)
+            word_embed, _ = word_embedding_forward(captions[:, i-1], W_embed)
+            # (2)
+            if self.cell_type == 'rnn':
+                next_h, _ == rnn_step_forward(word_embed, prev_h, Wx, Wh, b)
+            elif self.cell_type =='lstm':
+                next_h, next_cell, _ = lstm_step_forward(word_embed, prev_h, prev_C, Wx, Wh, b)
+                prev_cell = next_cell
+            # (3)
+            scores, _ = affine_forward(next_h, W_vocab, b_vocab)
+            # (4)
+            captions[:, i] = np.argmax(scores, axis=1)
+            prev_h = next_h
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
         #                             END OF YOUR CODE                             #
         ############################################################################
         return captions
+
