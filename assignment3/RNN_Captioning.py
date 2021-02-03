@@ -26,7 +26,6 @@ def rel_error(x, y):
     """ returns relative error """
     return np.max(np.abs(x - y) / (np.maximum(1e-8, np.abs(x) + np.abs(y))))
 
-
 # # Microsoft COCO
 # For this exercise we will use the 2014 release of the [Microsoft COCO dataset](http://mscoco.org/) which has become the standard testbed for image captioning. The dataset consists of 80,000 training images and 40,000 validation images, each annotated with 5 captions written by workers on Amazon Mechanical Turk.
 # 
@@ -71,7 +70,7 @@ for i, (caption, url) in enumerate(zip(captions, urls)):
     plt.axis('off')
     caption_str = decode_captions(caption, data['idx_to_word'])
     plt.title(caption_str)
-    plt.savefig('q1_RNN_imagepreview.png', bbox_inches='tight', dpi=250)
+    plt.savefig('q1a_RNN_imagepreview.png', bbox_inches='tight', dpi=250)
 
 print('\nRECURRENT NEURAL NETWORK')
 # As discussed in lecture, we will use recurrent neural network (RNN) language models for image captioning. The file `cs231n/rnn_layers.py` contains implementations of different layer types that are needed for recurrent neural networks, and the file `cs231n/classifiers/rnn.py` uses these layers to implement an image captioning model.
@@ -355,12 +354,12 @@ expected_loss = 9.83235591003
 print('loss: ', loss)
 print('expected loss: ', expected_loss)
 print('difference: ', abs(loss - expected_loss))
-
-
-# Run the following cell to perform numeric gradient checking on the `CaptioningRNN` class; you should see errors around the order of `e-6` or less.
+#dx error:  2.583585303524283e-08
+#loss:  9.832355910027387
+#expected loss:  9.83235591003
+#difference:  2.6130209107577684e-12
 
 np.random.seed(231)
-
 batch_size = 2
 timesteps = 3
 input_dim = 4
@@ -387,7 +386,14 @@ for param_name in sorted(grads):
     param_grad_num = eval_numerical_gradient(f, model.params[param_name], verbose=False, h=1e-6)
     e = rel_error(param_grad_num, grads[param_name])
     print('%s relative error: %e' % (param_name, e))
-
+#W_embed relative error: 2.331071e-09
+#W_proj relative error: 9.974426e-09
+#W_vocab relative error: 4.274378e-09
+#Wh relative error: 5.557955e-09
+#Wx relative error: 7.725620e-07
+#b relative error: 8.001353e-10
+#b_proj relative error: 6.260039e-09
+#b_vocab relative error: 1.690334e-09
 
 # # Overfit small data
 # Similar to the `Solver` class that we used to train image classification models on the previous assignment, on this assignment we use a `CaptioningSolver` class to train image captioning models. Open the file `cs231n/captioning_solver.py` and read through the `CaptioningSolver` class; it should look very familiar.
@@ -420,17 +426,16 @@ small_rnn_solver = CaptioningSolver(small_rnn_model, small_data,
 small_rnn_solver.train()
 
 # Plot the training losses
+plt.figure()
 plt.plot(small_rnn_solver.loss_history)
 plt.xlabel('Iteration')
 plt.ylabel('Loss')
 plt.title('Training loss history')
-plt.show()
-
+plt.savefig('q1b_RNN_OverfittingSubset.png', bbox_inches='tight', dpi=250)
 
 # Print final training loss. You should see a final loss of less than 0.1.
-
 print('Final loss: ', small_rnn_solver.loss_history[-1])
-
+# Final loss:  0.08209216668751658
 
 # # Test-time sampling
 # Unlike classification models, image captioning models behave very differently at training time and at test time. At training time, we have access to the ground-truth caption, so we feed ground-truth words as input to the RNN at each timestep. At test time, we sample from the distribution over the vocabulary at each timestep, and feed the sample as input to the RNN at the next timestep.
@@ -444,12 +449,12 @@ for split in ['train', 'val']:
 
     sample_captions = small_rnn_model.sample(features)
     sample_captions = decode_captions(sample_captions, data['idx_to_word'])
-
     for gt_caption, sample_caption, url in zip(gt_captions, sample_captions, urls):
+        plt.figure()
         plt.imshow(image_from_url(url))
         plt.title('%s\n%s\nGT:%s' % (split, sample_caption, gt_caption))
         plt.axis('off')
-        plt.show()
+        plt.savefig('q1c_RNN_CaptioningDemo'+str(gt_caption) +'.png', bbox_inches='tight', dpi=250)
 
 
 # # INLINE QUESTION 1
@@ -461,5 +466,5 @@ for split in ['train', 'val']:
 # Can you describe one advantage of an image-captioning model that uses a character-level RNN? Can you also describe one disadvantage? HINT: there are several valid answers, but it might be useful to compare the parameter space of word-level and character-level models.
 # 
 # **Your Answer:** 
-# 
-# 
+# ADV: Character based implimentation has a smaller vocabulary 
+# DIS: Number of parameters will increase due to the large sequence: less computational efficient and more prone to explodig / vanishing grads.
