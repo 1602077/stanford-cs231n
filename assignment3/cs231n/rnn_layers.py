@@ -2,12 +2,10 @@ from __future__ import print_function, division
 from builtins import range
 import numpy as np
 
-
 """
 This file defines layer types that are commonly used for recurrent neural
 networks.
 """
-
 
 def rnn_step_forward(x, prev_h, Wx, Wh, b):
     """
