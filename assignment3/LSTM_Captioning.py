@@ -4,10 +4,6 @@
 # # Image Captioning with LSTMs
 # In the previous exercise you implemented a vanilla RNN and applied it to image captioning. In this notebook you will implement the LSTM update rule and use it for image captioning.
 
-# In[ ]:
-
-
-# As usual, a bit of setup
 import time, os, json
 import numpy as np
 import matplotlib.pyplot as plt
@@ -19,26 +15,13 @@ from cs231n.classifiers.rnn import CaptioningRNN
 from cs231n.coco_utils import load_coco_data, sample_coco_minibatch, decode_captions
 from cs231n.image_utils import image_from_url
 
-get_ipython().magic('matplotlib inline')
 plt.rcParams['figure.figsize'] = (10.0, 8.0) # set default size of plots
 plt.rcParams['image.interpolation'] = 'nearest'
 plt.rcParams['image.cmap'] = 'gray'
 
-# for auto-reloading external modules
-# see http://stackoverflow.com/questions/1907993/autoreload-of-modules-in-ipython
-get_ipython().magic('load_ext autoreload')
-get_ipython().magic('autoreload 2')
-
 def rel_error(x, y):
     """ returns relative error """
     return np.max(np.abs(x - y) / (np.maximum(1e-8, np.abs(x) + np.abs(y))))
-
-
-# # Load MS-COCO data
-# As in the previous notebook, we will use the Microsoft COCO dataset for captioning.
-
-# In[ ]:
-
 
 # Load COCO data from disk; this returns a dictionary
 # We'll work with dimensionality-reduced features for this notebook, but feel
@@ -87,9 +70,6 @@ for k, v in data.items():
 # 
 # Once you are done, run the following to perform a simple test of your implementation. You should see errors on the order of `e-8` or less.
 
-# In[ ]:
-
-
 N, D, H = 3, 4, 5
 x = np.linspace(-0.4, 1.2, num=N*D).reshape(N, D)
 prev_h = np.linspace(-0.3, 0.7, num=N*H).reshape(N, H)
@@ -111,13 +91,11 @@ expected_next_c = np.asarray([
 
 print('next_h error: ', rel_error(expected_next_h, next_h))
 print('next_c error: ', rel_error(expected_next_c, next_c))
-
+#next_h error:  5.7054131185818695e-09
+#next_c error:  5.8143123088804145e-09
 
 # # LSTM: step backward
 # Implement the backward pass for a single LSTM timestep in the function `lstm_step_backward` in the file `cs231n/rnn_layers.py`. Once you are done, run the following to perform numeric gradient checking on your implementation. You should see errors on the order of `e-7` or less.
-
-# In[ ]:
-
 
 np.random.seed(231)
 
@@ -172,9 +150,6 @@ print('db error: ', rel_error(db_num, db))
 # 
 # When you are done, run the following to check your implementation. You should see an error on the order of `e-7` or less.
 
-# In[ ]:
-
-
 N, D, H, T = 2, 5, 4, 3
 x = np.linspace(-0.4, 0.6, num=N*T*D).reshape(N, T, D)
 h0 = np.linspace(-0.4, 0.8, num=N*H).reshape(N, H)
@@ -197,9 +172,6 @@ print('h error: ', rel_error(expected_h, h))
 
 # # LSTM: backward
 # Implement the backward pass for an LSTM over an entire timeseries of data in the function `lstm_backward` in the file `cs231n/rnn_layers.py`. When you are done, run the following to perform numeric gradient checking on your implementation. You should see errors on the order of `e-8` or less. (For `dWh`, it's fine if your error is on the order of `e-6` or less).
-
-# In[ ]:
-
 
 from cs231n.rnn_layers import lstm_forward, lstm_backward
 np.random.seed(231)
@@ -251,9 +223,6 @@ print('db error: ', rel_error(db_num, db))
 # 
 # Once you have done so, run the following to check your implementation. You should see a difference on the order of `e-10` or less.
 
-# In[ ]:
-
-
 N, D, W, H = 10, 20, 30, 40
 word_to_idx = {'<NULL>': 0, 'cat': 2, 'dog': 3}
 V = len(word_to_idx)
@@ -283,9 +252,6 @@ print('difference: ', abs(loss - expected_loss))
 
 # # Overfit LSTM captioning model
 # Run the following to overfit an LSTM captioning model on the same small dataset as we used for the RNN previously. You should see a final loss less than 0.5.
-
-# In[ ]:
-
 
 np.random.seed(231)
 
@@ -322,10 +288,6 @@ plt.show()
 
 
 # Print final training loss. You should see a final loss of less than 0.5.
-
-# In[ ]:
-
-
 print('Final loss: ', small_lstm_solver.loss_history[-1])
 
 
@@ -333,9 +295,6 @@ print('Final loss: ', small_lstm_solver.loss_history[-1])
 # Modify the `sample` method of the `CaptioningRNN` class to handle the case where `self.cell_type` is `lstm`. This should take fewer than 10 lines of code.
 # 
 # When you are done run the following to sample from your overfit LSTM model on some training and validation set samples. As with the RNN, training results should be very good, and validation results probably won't make a lot of sense (because we're overfitting).
-
-# In[ ]:
-
 
 for split in ['train', 'val']:
     minibatch = sample_coco_minibatch(small_data, split=split, batch_size=2)
