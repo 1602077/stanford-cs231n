@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# # Image Captioning with LSTMs
-# In the previous exercise you implemented a vanilla RNN and applied it to image captioning. In this notebook you will implement the LSTM update rule and use it for image captioning.
+# Image Captioning with LSTMs
+#In the previous exercise you implemented a vanilla RNN and applied it to image captioning. In this notebook you will implement the LSTM update rule and use it for image captioning.
 
 import time, os, json
 import numpy as np
 import matplotlib.pyplot as plt
-
 from cs231n.gradient_check import eval_numerical_gradient, eval_numerical_gradient_array
 from cs231n.rnn_layers import *
 from cs231n.captioning_solver import CaptioningSolver
@@ -23,6 +22,9 @@ def rel_error(x, y):
     """ returns relative error """
     return np.max(np.abs(x - y) / (np.maximum(1e-8, np.abs(x) + np.abs(y))))
 
+# Load MS-COCO data
+#As in the previous notebook, we will use the Microsoft COCO dataset for captioning.
+
 # Load COCO data from disk; this returns a dictionary
 # We'll work with dimensionality-reduced features for this notebook, but feel
 # free to experiment with the original features by changing the flag below.
@@ -35,40 +37,39 @@ for k, v in data.items():
     else:
         print(k, type(v), len(v))
 
-
-# # LSTM
-# If you read recent papers, you'll see that many people use a variant on the vanilla RNN called Long-Short Term Memory (LSTM) RNNs. Vanilla RNNs can be tough to train on long sequences due to vanishing and exploding gradients caused by repeated matrix multiplication. LSTMs solve this problem by replacing the simple update rule of the vanilla RNN with a gating mechanism as follows.
-# 
-# Similar to the vanilla RNN, at each timestep we receive an input $x_t\in\mathbb{R}^D$ and the previous hidden state $h_{t-1}\in\mathbb{R}^H$; the LSTM also maintains an $H$-dimensional *cell state*, so we also receive the previous cell state $c_{t-1}\in\mathbb{R}^H$. The learnable parameters of the LSTM are an *input-to-hidden* matrix $W_x\in\mathbb{R}^{4H\times D}$, a *hidden-to-hidden* matrix $W_h\in\mathbb{R}^{4H\times H}$ and a *bias vector* $b\in\mathbb{R}^{4H}$.
-# 
-# At each timestep we first compute an *activation vector* $a\in\mathbb{R}^{4H}$ as $a=W_xx_t + W_hh_{t-1}+b$. We then divide this into four vectors $a_i,a_f,a_o,a_g\in\mathbb{R}^H$ where $a_i$ consists of the first $H$ elements of $a$, $a_f$ is the next $H$ elements of $a$, etc. We then compute the *input gate* $g\in\mathbb{R}^H$, *forget gate* $f\in\mathbb{R}^H$, *output gate* $o\in\mathbb{R}^H$ and *block input* $g\in\mathbb{R}^H$ as
-# 
-# $$
-# i = \sigma(a_i) \hspace{2pc}
-# f = \sigma(a_f) \hspace{2pc}
-# o = \sigma(a_o) \hspace{2pc}
-# g = \tanh(a_g)
-# $$
-# 
-# where $\sigma$ is the sigmoid function and $\tanh$ is the hyperbolic tangent, both applied elementwise.
-# 
-# Finally we compute the next cell state $c_t$ and next hidden state $h_t$ as
-# 
-# $$
-# c_{t} = f\odot c_{t-1} + i\odot g \hspace{4pc}
-# h_t = o\odot\tanh(c_t)
-# $$
-# 
-# where $\odot$ is the elementwise product of vectors.
-# 
-# In the rest of the notebook we will implement the LSTM update rule and apply it to the image captioning task. 
-# 
-# In the code, we assume that data is stored in batches so that $X_t \in \mathbb{R}^{N\times D}$, and will work with *transposed* versions of the parameters: $W_x \in \mathbb{R}^{D \times 4H}$, $W_h \in \mathbb{R}^{H\times 4H}$ so that activations $A \in \mathbb{R}^{N\times 4H}$ can be computed efficiently as $A = X_t W_x + H_{t-1} W_h$
-
-# # LSTM: step forward
-# Implement the forward pass for a single timestep of an LSTM in the `lstm_step_forward` function in the file `cs231n/rnn_layers.py`. This should be similar to the `rnn_step_forward` function that you implemented above, but using the LSTM update rule instead.
-# 
-# Once you are done, run the following to perform a simple test of your implementation. You should see errors on the order of `e-8` or less.
+# LSTM
+#If you read recent papers, you'll see that many people use a variant on the vanilla RNN called Long-Short Term Memory (LSTM) RNNs. Vanilla RNNs can be tough to train on long sequences due to vanishing and exploding gradients caused by repeated matrix multiplication. LSTMs solve this problem by replacing the simple update rule of the vanilla RNN with a gating mechanism as follows.
+#
+#Similar to the vanilla RNN, at each timestep we receive an input $x_t\in\mathbb{R}^D$ and the previous hidden state $h_{t-1}\in\mathbb{R}^H$; the LSTM also maintains an $H$-dimensional *cell state*, so we also receive the previous cell state $c_{t-1}\in\mathbb{R}^H$. The learnable parameters of the LSTM are an *input-to-hidden* matrix $W_x\in\mathbb{R}^{4H\times D}$, a *hidden-to-hidden* matrix $W_h\in\mathbb{R}^{4H\times H}$ and a *bias vector* $b\in\mathbb{R}^{4H}$.
+#
+#At each timestep we first compute an *activation vector* $a\in\mathbb{R}^{4H}$ as $a=W_xx_t + W_hh_{t-1}+b$. We then divide this into four vectors $a_i,a_f,a_o,a_g\in\mathbb{R}^H$ where $a_i$ consists of the first $H$ elements of $a$, $a_f$ is the next $H$ elements of $a$, etc. We then compute the *input gate* $g\in\mathbb{R}^H$, *forget gate* $f\in\mathbb{R}^H$, *output gate* $o\in\mathbb{R}^H$ and *block input* $g\in\mathbb{R}^H$ as
+#
+#$$
+#i = \sigma(a_i) \hspace{2pc}
+#f = \sigma(a_f) \hspace{2pc}
+#o = \sigma(a_o) \hspace{2pc}
+#g = \tanh(a_g)
+#$$
+#
+#where $\sigma$ is the sigmoid function and $\tanh$ is the hyperbolic tangent, both applied elementwise.
+#
+#Finally we compute the next cell state $c_t$ and next hidden state $h_t$ as
+#
+#$$
+#c_{t} = f\odot c_{t-1} + i\odot g \hspace{4pc}
+#h_t = o\odot\tanh(c_t)
+#$$
+#
+#where $\odot$ is the elementwise product of vectors.
+#
+#In the rest of the notebook we will implement the LSTM update rule and apply it to the image captioning task. 
+#
+#In the code, we assume that data is stored in batches so that $X_t \in \mathbb{R}^{N\times D}$, and will work with *transposed* versions of the parameters: $W_x \in \mathbb{R}^{D \times 4H}$, $W_h \in \mathbb{R}^{H\times 4H}$ so that activations $A \in \mathbb{R}^{N\times 4H}$ can be computed efficiently as $A = X_t W_x + H_{t-1} W_h$
+#
+## LSTM: step forward
+#Implement the forward pass for a single timestep of an LSTM in the `lstm_step_forward` function in the file `cs231n/rnn_layers.py`. This should be similar to the `rnn_step_forward` function that you implemented above, but using the LSTM update rule instead.
+#
+#Once you are done, run the following to perform a simple test of your implementation. You should see errors on the order of `e-8` or less.
 
 N, D, H = 3, 4, 5
 x = np.linspace(-0.4, 1.2, num=N*D).reshape(N, D)
@@ -91,11 +92,9 @@ expected_next_c = np.asarray([
 
 print('next_h error: ', rel_error(expected_next_h, next_h))
 print('next_c error: ', rel_error(expected_next_c, next_c))
-#next_h error:  5.7054131185818695e-09
-#next_c error:  5.8143123088804145e-09
 
-# # LSTM: step backward
-# Implement the backward pass for a single LSTM timestep in the function `lstm_step_backward` in the file `cs231n/rnn_layers.py`. Once you are done, run the following to perform numeric gradient checking on your implementation. You should see errors on the order of `e-7` or less.
+# LSTM: step backward
+#Implement the backward pass for a single LSTM timestep in the function `lstm_step_backward` in the file `cs231n/rnn_layers.py`. Once you are done, run the following to perform numeric gradient checking on your implementation. You should see errors on the order of `e-7` or less.
 
 np.random.seed(231)
 
@@ -144,11 +143,9 @@ print('dWx error: ', rel_error(dWx_num, dWx))
 print('dWh error: ', rel_error(dWh_num, dWh))
 print('db error: ', rel_error(db_num, db))
 
-
-# # LSTM: forward
-# In the function `lstm_forward` in the file `cs231n/rnn_layers.py`, implement the `lstm_forward` function to run an LSTM forward on an entire timeseries of data.
-# 
-# When you are done, run the following to check your implementation. You should see an error on the order of `e-7` or less.
+# LSTM: forward
+#In the function `lstm_forward` in the file `cs231n/rnn_layers.py`, implement the `lstm_forward` function to run an LSTM forward on an entire timeseries of data.
+#When you are done, run the following to check your implementation. You should see an error on the order of `e-7` or less.
 
 N, D, H, T = 2, 5, 4, 3
 x = np.linspace(-0.4, 0.6, num=N*T*D).reshape(N, T, D)
@@ -169,9 +166,8 @@ expected_h = np.asarray([
 
 print('h error: ', rel_error(expected_h, h))
 
-
-# # LSTM: backward
-# Implement the backward pass for an LSTM over an entire timeseries of data in the function `lstm_backward` in the file `cs231n/rnn_layers.py`. When you are done, run the following to perform numeric gradient checking on your implementation. You should see errors on the order of `e-8` or less. (For `dWh`, it's fine if your error is on the order of `e-6` or less).
+# LSTM: backward
+#Implement the backward pass for an LSTM over an entire timeseries of data in the function `lstm_backward` in the file `cs231n/rnn_layers.py`. When you are done, run the following to perform numeric gradient checking on your implementation. You should see errors on the order of `e-8` or less. (For `dWh`, it's fine if your error is on the order of `e-6` or less).
 
 from cs231n.rnn_layers import lstm_forward, lstm_backward
 np.random.seed(231)
@@ -209,19 +205,11 @@ print('dWh error: ', rel_error(dWh_num, dWh))
 print('db error: ', rel_error(db_num, db))
 
 
-# # INLINE QUESTION
-# 
-# Recall that in an LSTM the input gate $i$, forget gate $f$, and output gate $o$ are all outputs of a sigmoid function. Why don't we use the ReLU activation function instead of sigmoid to compute these values? Explain.
-# 
-# **Your Answer:** 
-# 
-# 
+# LSTM captioning model
 
-# # LSTM captioning model
-# 
-# Now that you have implemented an LSTM, update the implementation of the `loss` method of the `CaptioningRNN` class in the file `cs231n/classifiers/rnn.py` to handle the case where `self.cell_type` is `lstm`. This should require adding less than 10 lines of code.
-# 
-# Once you have done so, run the following to check your implementation. You should see a difference on the order of `e-10` or less.
+#Now that you have implemented an LSTM, update the implementation of the `loss` method of the `CaptioningRNN` class in the file `cs231n/classifiers/rnn.py` to handle the case where `self.cell_type` is `lstm`. This should require adding less than 10 lines of code.
+
+#Once you have done so, run the following to check your implementation. You should see a difference on the order of `e-10` or less.
 
 N, D, W, H = 10, 20, 30, 40
 word_to_idx = {'<NULL>': 0, 'cat': 2, 'dog': 3}
@@ -249,9 +237,8 @@ print('loss: ', loss)
 print('expected loss: ', expected_loss)
 print('difference: ', abs(loss - expected_loss))
 
-
-# # Overfit LSTM captioning model
-# Run the following to overfit an LSTM captioning model on the same small dataset as we used for the RNN previously. You should see a final loss less than 0.5.
+# Overfit LSTM captioning model
+#Run the following to overfit an LSTM captioning model on the same small dataset as we used for the RNN previously. You should see a final loss less than 0.5.
 
 np.random.seed(231)
 
@@ -279,22 +266,21 @@ small_lstm_solver = CaptioningSolver(small_lstm_model, small_data,
 
 small_lstm_solver.train()
 
-# Plot the training losses
+plt.figure()
 plt.plot(small_lstm_solver.loss_history)
 plt.xlabel('Iteration')
 plt.ylabel('Loss')
 plt.title('Training loss history')
 plt.show()
 
+"""Print final training loss. You should see a final loss of less than 0.5."""
 
-# Print final training loss. You should see a final loss of less than 0.5.
 print('Final loss: ', small_lstm_solver.loss_history[-1])
 
+# LSTM test-time sampling
+#Modify the `sample` method of the `CaptioningRNN` class to handle the case where `self.cell_type` is `lstm`. This should take fewer than 10 lines of code.
 
-# # LSTM test-time sampling
-# Modify the `sample` method of the `CaptioningRNN` class to handle the case where `self.cell_type` is `lstm`. This should take fewer than 10 lines of code.
-# 
-# When you are done run the following to sample from your overfit LSTM model on some training and validation set samples. As with the RNN, training results should be very good, and validation results probably won't make a lot of sense (because we're overfitting).
+#When you are done run the following to sample from your overfit LSTM model on some training and validation set samples. As with the RNN, training results should be very good, and validation results probably won't make a lot of sense (because we're overfitting).
 
 for split in ['train', 'val']:
     minibatch = sample_coco_minibatch(small_data, split=split, batch_size=2)
