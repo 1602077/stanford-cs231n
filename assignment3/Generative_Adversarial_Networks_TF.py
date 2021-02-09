@@ -35,11 +35,6 @@
 # ![caption](gan_outputs_tf.png)
 # 
 
-# ## Setup
-
-# In[ ]:
-
-
 import tensorflow as tf
 import numpy as np
 import os
@@ -47,17 +42,9 @@ import os
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
-get_ipython().magic('matplotlib inline')
 plt.rcParams['figure.figsize'] = (10.0, 8.0) # set default size of plots
 plt.rcParams['image.interpolation'] = 'nearest'
 plt.rcParams['image.cmap'] = 'gray'
-
-# for auto-reloading external modules
-# see http://stackoverflow.com/questions/1907993/autoreload-of-modules-in-ipython
-get_ipython().magic('load_ext autoreload')
-get_ipython().magic('autoreload 2')
-
-# A bunch of utility functions
 
 def show_images(images):
     images = np.reshape(images, [images.shape[0], -1])  # images reshape to (batch_size, D)
@@ -79,22 +66,7 @@ def show_images(images):
 
 from cs231n.gan_tf import preprocess_img, deprocess_img, rel_error, count_params, MNIST
 
-
-
 NOISE_DIM = 96
-
-
-# In[ ]:
-
-
-# Colab users only
-get_ipython().magic('cd drive/My\\ Drive/$FOLDERNAME/')
-get_ipython().magic('cp -r gan-checks-tf.npz /content/')
-get_ipython().magic('cd /content/')
-
-
-# In[ ]:
-
 
 answers = np.load('gan-checks-tf.npz')
 

@@ -28,11 +28,6 @@ import tensorflow as tf
 from cs231n.image_utils import load_image, preprocess_image, deprocess_image
 from cs231n.classifiers.squeezenet import SqueezeNet
 
-get_ipython().magic('matplotlib inline')
-get_ipython().magic('load_ext autoreload')
-get_ipython().magic('autoreload 2')
-
-
 # Older versions of scipy.misc.imresize yield different results
 # from newer versions, so we check to make sure scipy is up to date.
 def check_scipy():
