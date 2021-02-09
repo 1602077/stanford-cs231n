@@ -2,3 +2,4 @@
 frameworkpython
 makepdf.py
 *.npz
+StyleTransferIterationImages/
