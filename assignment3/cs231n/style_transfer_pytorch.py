@@ -3,14 +3,11 @@ import torch.nn as nn
 import torchvision
 import torchvision.transforms as T
 import PIL
-
 import numpy as np
-
 from .image_utils import SQUEEZENET_MEAN, SQUEEZENET_STD
 
-dtype = torch.FloatTensor
-# Uncomment out the following line if you're on a machine with a GPU set up for PyTorch!
-#dtype = torch.cuda.FloatTensor
+#dtype = torch.FloatTensor
+dtype = torch.cuda.FloatTensor
 def content_loss(content_weight, content_current, content_original):
     """
     Compute the content loss for style transfer.
@@ -25,9 +22,8 @@ def content_loss(content_weight, content_current, content_original):
     - scalar content loss
     """
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-    pass
-
+    content_loss = content_weight * torch.sum(torch.pow(content_current - content_original, 2))
+    return content_loss
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
 def gram_matrix(features, normalize=True):
@@ -45,9 +41,12 @@ def gram_matrix(features, normalize=True):
       (optionally normalized) Gram matrices for the N input images.
     """
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-    pass
-
+    N, C, H, W = features.shape
+    features_reshaped = features.view(N, C, -1)
+    gram = torch.bmm(features_reshaped, features_reshaped.transpose(1, 2))
+    if normalize:
+        gram /=  H * W * C
+    return gram
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
 # Now put it together in the style_loss function...
@@ -72,9 +71,11 @@ def style_loss(feats, style_layers, style_targets, style_weights):
     # Hint: you can do this with one for loop over the style layers, and should
     # not be very much code (~5 lines). You will need to use your gram_matrix function.
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-    pass
-
+    style_loss = 0
+    for i in range(len(style_layers)):
+        gram = gram_matrix(feats[style_layers[i]])
+        style_loss += style_weights[i] * torch.sum(torch.pow(gram-style_targets[i], 2))
+    return style_loss
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
 def tv_loss(img, tv_weight):
@@ -91,10 +92,12 @@ def tv_loss(img, tv_weight):
     """
     # Your implementation should be vectorized and not require any loops!
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-    pass
-
+    w_var = torch.sum(torch.pow(img[:,:,:,:-1] - img[:,:,:,1:], 2))
+    h_var = torch.sum(torch.pow(img[:,:,:-1,:] - img[:,:,1:,:], 2))
+    loss = tv_weight * (h_var + w_var)
+    return loss
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+
 def preprocess(img, size=512):
     """ Preprocesses a PIL JPG Image object to become a Pytorch tensor
         that is ready to be used as an input into the CNN model.
