@@ -8,5 +8,6 @@ Assignment 1: Complete
 
 Assignment 2: Complete
 
-Assignnent 3: In Progress
+Assignnent 3: Complete
 
+N.B. Pytorch assigments complete, duplicate tensorflow assignments to be completed at a later date.
