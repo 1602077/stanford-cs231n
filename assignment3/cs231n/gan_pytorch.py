@@ -11,8 +11,8 @@ import PIL
 
 NOISE_DIM = 96
 
-dtype = torch.FloatTensor
-#dtype = torch.cuda.FloatTensor ## UNCOMMENT THIS LINE IF YOU'RE ON A GPU!
+#dtype = torch.FloatTensor
+dtype = torch.cuda.FloatTensor ## UNCOMMENT THIS LINE IF YOU'RE ON A GPU!
 
 def sample_noise(batch_size, dim, seed=None):
     """
@@ -30,9 +30,7 @@ def sample_noise(batch_size, dim, seed=None):
         torch.manual_seed(seed)
         
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-    pass
-
+    return (2*torch.rand(batch_size, dim)) - 1 # [-1, 1]
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     
 def discriminator(seed=None):
@@ -51,9 +49,19 @@ def discriminator(seed=None):
     # HINT: nn.Sequential might be helpful.                                      #
     ##############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-    pass
-
+    #Fully connected layer with input size 784 and output size 256
+    #LeakyReLU with alpha 0.01
+    #Fully connected layer with input_size 256 and output size 256
+    #LeakyReLU with alpha 0.01
+    #Fully connected layer with input size 256 and output size 1
+    model = nn.Sequential(
+        Flatten(),
+        nn.Linear(784, 256),
+        nn.LeakyReLU(0.01, inplace=True),
+        nn.Linear(256, 256),
+        nn.LeakyReLU(0.01, inplace=True),
+        nn.Linear(256, 1)
+    )
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ##############################################################################
     #                               END OF YOUR CODE                             #
@@ -76,9 +84,20 @@ def generator(noise_dim=NOISE_DIM, seed=None):
     # HINT: nn.Sequential might be helpful.                                      #
     ##############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-    pass
-
+    #Fully connected layer from noise_dim to 1024
+    #ReLU
+    #Fully connected layer with size 1024
+    #ReLU
+    #Fully connected layer with size 784
+    #TanH (to clip the image to be in the range of [-1,1])
+    model = nn.Sequential(
+        nn.Linear(noise_dim, 1024),
+        nn.ReLU(inplace=True),
+        nn.Linear(1024, 1024),
+        nn.ReLU(inplace=True),
+        nn.Linear(1024, 784),
+        nn.Tanh()
+    )
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ##############################################################################
     #                               END OF YOUR CODE                             #
@@ -115,13 +134,13 @@ def discriminator_loss(logits_real, logits_fake):
     Returns:
     - loss: PyTorch Tensor containing (scalar) the loss for the discriminator.
     """
-    loss = None
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-    pass
-
+    target_real = torch.ones_like(logits_real)
+    target_fake = torch.zeros_like(logits_fake)
+    loss_real = bce_loss(logits_real, target_real)
+    loss_fake = bce_loss(logits_fake, target_fake)
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-    return loss
+    return loss_real + loss_fake
 
 def generator_loss(logits_fake):
     """
@@ -133,13 +152,10 @@ def generator_loss(logits_fake):
     Returns:
     - loss: PyTorch Tensor containing the (scalar) loss for the generator.
     """
-    loss = None
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-    pass
-
+    target_fake = torch.ones_like(logits_fake)
+    return bce_loss(logits_fake, target_fake)
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-    return loss
 
 def get_optimizer(model):
     """
@@ -152,13 +168,9 @@ def get_optimizer(model):
     Returns:
     - An Adam optimizer for the model with the desired hyperparameters.
     """
-    optimizer = None
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-    pass
-
+    return optim.Adam(model.parameters(), lr=1e-3, betas=(0.5, 0.999))
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-    return optimizer
 
 def ls_discriminator_loss(scores_real, scores_fake):
     """
@@ -171,13 +183,11 @@ def ls_discriminator_loss(scores_real, scores_fake):
     Outputs:
     - loss: A PyTorch Tensor containing the loss.
     """
-    loss = None
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-    pass
-
+    loss_real =  0.5 * ((scores_real -1)**2).mean()
+    loss_fake = 0.5 * ((scores_fake)**2).mean()
+    return loss_real + loss_fake
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-    return loss
 
 def ls_generator_loss(scores_fake):
     """
@@ -189,13 +199,9 @@ def ls_generator_loss(scores_fake):
     Outputs:
     - loss: A PyTorch Tensor containing the loss.
     """
-    loss = None
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-    pass
-
+    return 0.5 * ((scores_fake - 1)**2).mean()
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-    return loss
 
 def build_dc_classifier(batch_size):
     """
@@ -209,9 +215,31 @@ def build_dc_classifier(batch_size):
     # HINT: nn.Sequential might be helpful.                                      #
     ##############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-    pass
-
+    # Reshape into image tensor (Use Unflatten!)
+    # Conv2D: 32 Filters, 5x5, Stride 1
+    # Leaky ReLU(alpha=0.01)
+    # Max Pool 2x2, Stride 2
+    # Conv2D: 64 Filters, 5x5, Stride 1
+    # Leaky ReLU(alpha=0.01)
+    # Max Pool 2x2, Stride 2
+    # Flatten
+    # Fully Connected with output size 4x 4 x 64
+    # Leaky ReLU(alpha=0.01)
+    # Fully Connected with output size 1 
+    model = nn.Sequential(
+        Unflatten(batch_size, 1, 28, 28),
+        nn.Conv2d(1, 32, 5),
+        nn.LeakyReLU(inplace=True),
+        nn.MaxPool2d(2, stride=2),
+        nn.Conv2d(32, 64, 5),
+        nn.LeakyReLU(inplace=True),
+        nn.MaxPool2d(2, stride=2),
+        Flatten(),
+        nn.Linear(4 * 4 * 64, 4 * 4 * 64),
+        nn.LeakyReLU(inplace=True),
+        nn.Linear(4*4*64, 1)
+    )
+    return model
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ##############################################################################
     #                               END OF YOUR CODE                             #
@@ -230,9 +258,35 @@ def build_dc_generator(noise_dim=NOISE_DIM):
     # HINT: nn.Sequential might be helpful.                                      #
     ##############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-    pass
-
+    # Fully connected with output size 1024
+    # ReLU
+    # BatchNorm
+    # Fully connected with output size 7 x 7 x 128
+    # ReLU
+    # BatchNorm
+    # Reshape into Image Tensor of shape 7, 7, 128
+    # Conv2D^T (Transpose): 64 filters of 4x4, stride 2, 'same' padding
+    # ReLU
+    # BatchNorm
+    # Conv2D^T (Transpose): 1 filter of 4x4, stride 2, 'same' padding
+    # TanH
+    # Should have a 28x28x1 image, reshape back into 784 vector
+    model = nn.Sequential(
+        nn.Linear(noise_dim, 1024),
+        nn.ReLU(inplace=True),
+        nn.BatchNorm1d(num_features=1024),
+        nn.Linear(1024, 7 * 7 * 128),
+        nn.ReLU(inplace=True),
+        nn.BatchNorm1d(num_features=7 * 7 * 128),
+        Unflatten(128, 128, 7, 7),
+        nn.ConvTranspose2d(128, 64, 4, stride=2, padding=1),
+        nn.ReLU(inplace=True),
+        nn.BatchNorm2d(num_features=64),
+        nn.ConvTranspose2d(64, 1, 4, stride=2, padding=1),
+        nn.Tanh(),
+        Flatten()
+    )
+    return model
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ##############################################################################
     #                               END OF YOUR CODE                             #
@@ -345,3 +399,4 @@ def count_params(model):
     """Count the number of parameters in the current TensorFlow graph """
     param_count = np.sum([np.prod(p.size()) for p in model.parameters()])
     return param_count
+
