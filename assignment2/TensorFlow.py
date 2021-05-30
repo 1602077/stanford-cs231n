@@ -586,8 +586,6 @@ train_part2(three_layer_convnet, three_layer_convnet_init, learning_rate)
 # 
 # We construct `tf.keras.layers.Dense` objects to represent the two fully-connected layers of the model. In addition to multiplying their input by a weight matrix and adding a bias vector, these layer can also apply a nonlinearity for you. For the first layer we specify a ReLU activation function by passing `activation='relu'` to the constructor; the second layer uses softmax activation function. Finally, we use `tf.keras.layers.Flatten` to flatten the output from the previous fully-connected layer.
 
-# In[ ]:
-
 
 class TwoLayerFC(tf.keras.Model):
     def __init__(self, hidden_size, num_classes):
