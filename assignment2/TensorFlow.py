@@ -507,8 +507,7 @@ def two_layer_fc_init():
 
 learning_rate = 1e-2
 
-# UNCOMMENT BEFORE FINAL SUBMISSION
-#train_part2(two_layer_fc, two_layer_fc_init, learning_rate)
+train_part2(two_layer_fc, two_layer_fc_init, learning_rate)
 
 
 # ### Barebones TensorFlow: Train a three-layer ConvNet
@@ -561,8 +560,7 @@ def three_layer_convnet_init():
     return (conv_w1, conv_b1, conv_w2, conv_b2, fc_w, fc_b)
 
 learning_rate = 3e-3
-# UNCOMMENT BEFORE FINAL SUBMISSION
-#train_part2(three_layer_convnet, three_layer_convnet_init, learning_rate)
+train_part2(three_layer_convnet, three_layer_convnet_init, learning_rate)
 
 
 # # Part III: Keras Model Subclassing API
@@ -793,8 +791,7 @@ def optimizer_init_fn():
     return tf.keras.optimizers.SGD(learning_rate=learning_rate)
 
 print('\nTrain a Two-Layer Network (Subclassed Model)')
-# UNCOMMENT BEFORE FINAL SUBMISSION
-#train_part34(model_init_fn, optimizer_init_fn)
+train_part34(model_init_fn, optimizer_init_fn)
 
 
 # ### Keras Model Subclassing  API: Train a Three-Layer ConvNet
@@ -834,8 +831,7 @@ def optimizer_init_fn():
     return tf.keras.optimizers.SGD(learning_rate, 0.9, nesterov=True)
 
 print('\nTrain a Three Layer Network (Subclassed Model)')
-# UNCOMMENT BEFORE FINAL SUBMISSION
-#train_part34(model_init_fn, optimizer_init_fn)
+train_part34(model_init_fn, optimizer_init_fn)
 
 
 # # Part IV: Keras Sequential API
@@ -871,8 +867,7 @@ def optimizer_init_fn():
     return tf.keras.optimizers.SGD(learning_rate=learning_rate) 
 
 print('\nTrain a Two Layer Network (Keras Sequential Model - Custom Training Loop)')
-# UNCOMMENT BEFORE FINAL SUBMISSION
-#train_part34(model_init_fn, optimizer_init_fn)
+train_part34(model_init_fn, optimizer_init_fn)
 
 
 # ### Abstracting Away the Training Loop
@@ -886,8 +881,9 @@ model = model_init_fn()
 model.compile(optimizer=tf.keras.optimizers.SGD(learning_rate=learning_rate),
               loss='sparse_categorical_crossentropy',
               metrics=[tf.keras.metrics.sparse_categorical_accuracy])
-model.fit(X_train, y_train, batch_size=64, epochs=1, validation_data=(X_val, y_val))
-model.evaluate(X_test, y_test)
+# UNCOMMENT
+#model.fit(X_train, y_train, batch_size=64, epochs=1, validation_data=(X_val, y_val))
+#model.evaluate(X_test, y_test)
 
 
 # ### Keras Sequential API: Three-Layer ConvNet
@@ -1073,9 +1069,42 @@ class CustomConvNet(tf.keras.Model):
         # TODO: Construct a model that performs well on CIFAR-10                   #
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+        input_shape = (32, 32, 3)
+        channel_1, channel_2, channel_3, channel_4  = 32, 64, 128, 256
+        num_classes = 10
+        initializer = tf.initializers.VarianceScaling(scale=2.0)
 
-        pass
+        self.conv1a = tf.keras.layers.Conv2D(channel_1, [3,3], [1,1], padding='SAME', 
+                                kernel_initializer=initializer)
+        self.bn1a = tf.keras.layers.BatchNormalization()
+        self.relu1a = tf.keras.layers.ReLU()
+        self.conv2a = tf.keras.layers.Conv2D(channel_2, [3,3], [1,1], padding='SAME', 
+                                kernel_initializer=initializer, activation = tf.nn.relu)
+        self.mp1a = tf.keras.layers.MaxPool2D(pool_size=2, strides=2)
+        self.dp1a = tf.keras.layers.Dropout(rate=0.2)
 
+
+        self.conv1b = tf.keras.layers.Conv2D(channel_3, [3,3], [1,1], padding='SAME', 
+                                kernel_initializer=initializer)
+        self.bn1b = tf.keras.layers.BatchNormalization()
+        self.relu1b = tf.keras.layers.ReLU()
+        self.conv2b = tf.keras.layers.Conv2D(channel_3, [3,3], [1,1], padding='SAME', 
+                                kernel_initializer=initializer, activation = tf.nn.relu)
+        self.mp1b = tf.keras.layers.MaxPool2D(pool_size=2, strides=2)
+        self.dp1b = tf.keras.layers.Dropout(rate=0.2)
+
+        self.conv1c = tf.keras.layers.Conv2D(channel_4, [3,3], [1,1], padding='SAME', 
+                                kernel_initializer=initializer)
+        self.bn1c = tf.keras.layers.BatchNormalization()
+        self.relu1c = tf.keras.layers.ReLU()
+        self.conv2c = tf.keras.layers.Conv2D(channel_4, [3,3], [1,1], padding='SAME', 
+                                kernel_initializer=initializer, activation = tf.nn.relu)
+        self.mp1c = tf.keras.layers.MaxPool2D(pool_size=2, strides=2)
+        self.dp1c = tf.keras.layers.Dropout(rate=0.2)
+                                
+        self.flatten = tf.keras.layers.Flatten()
+        self.fc = tf.keras.layers.Dense(num_classes, kernel_initializer = initializer)
+        self.softmax = tf.keras.layers.Softmax()
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
         #                            END OF YOUR CODE                              #
@@ -1086,9 +1115,30 @@ class CustomConvNet(tf.keras.Model):
         # TODO: Construct a model that performs well on CIFAR-10                   #
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+        x = self.conv1a(input_tensor)
+        x = self.bn1a(x)
+        x = self.relu1a(x)
+        x = self.conv2a(x)
+        x = self.mp1a(x)
+        x = self.dp1a(x)
 
-        pass
+        x = self.conv1b(x)
+        x = self.bn1b(x)
+        x = self.relu1b(x)
+        x = self.conv2b(x)
+        x = self.mp1b(x)
+        x = self.dp1b(x)
 
+        x = self.conv1c(x)
+        x = self.bn1c(x)
+        x = self.relu1c(x)
+        x = self.conv2c(x)
+        x = self.mp1c(x)
+        x = self.dp1c(x)
+
+        x = self.flatten(x)
+        x = self.fc(x)
+        x = self.softmax(x)
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
         #                            END OF YOUR CODE                              #
@@ -1096,8 +1146,8 @@ class CustomConvNet(tf.keras.Model):
         return x
 
 
-print_every = 700
-num_epochs = 10
+print_every = 250
+num_epochs = 10 #10
 
 model = CustomConvNet()
 
@@ -1105,8 +1155,13 @@ def model_init_fn():
     return CustomConvNet()
 
 def optimizer_init_fn():
-    learning_rate = 1e-3
-    return tf.keras.optimizers.Adam(learning_rate) 
+    lr = 1e-3
+    lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
+    initial_learning_rate=learning_rate,
+    decay_steps=10000,
+    decay_rate=0.9)
+    return tf.keras.optimizers.Adam(lr) 
 
 train_part34(model_init_fn, optimizer_init_fn, num_epochs=num_epochs, is_training=True)
+# Train Acc: 95.41%, Test Acc: 78.30%
 
