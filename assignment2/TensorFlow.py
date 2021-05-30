@@ -792,7 +792,9 @@ def model_init_fn():
 def optimizer_init_fn():
     return tf.keras.optimizers.SGD(learning_rate=learning_rate)
 
-train_part34(model_init_fn, optimizer_init_fn)
+print('\nTrain a Two-Layer Network (Subclassed Model)')
+# UNCOMMENT BEFORE FINAL SUBMISSION
+#train_part34(model_init_fn, optimizer_init_fn)
 
 
 # ### Keras Model Subclassing  API: Train a Three-Layer ConvNet
@@ -831,7 +833,9 @@ def optimizer_init_fn():
     ############################################################################
     return tf.keras.optimizers.SGD(learning_rate, 0.9, nesterov=True)
 
-train_part34(model_init_fn, optimizer_init_fn)
+print('\nTrain a Three Layer Network (Subclassed Model)')
+# UNCOMMENT BEFORE FINAL SUBMISSION
+#train_part34(model_init_fn, optimizer_init_fn)
 
 
 # # Part IV: Keras Sequential API
@@ -845,8 +849,6 @@ train_part34(model_init_fn, optimizer_init_fn)
 # In this subsection, we will rewrite the two-layer fully-connected network using `tf.keras.Sequential`, and train it using the training loop defined above.
 # 
 # You don't need to perform any hyperparameter tuning here, but you should see validation accuracies above 40% after training for one epoch.
-
-# In[ ]:
 
 
 learning_rate = 1e-2
@@ -868,7 +870,9 @@ def model_init_fn():
 def optimizer_init_fn():
     return tf.keras.optimizers.SGD(learning_rate=learning_rate) 
 
-train_part34(model_init_fn, optimizer_init_fn)
+print('\nTrain a Two Layer Network (Keras Sequential Model - Custom Training Loop)')
+# UNCOMMENT BEFORE FINAL SUBMISSION
+#train_part34(model_init_fn, optimizer_init_fn)
 
 
 # ### Abstracting Away the Training Loop
@@ -876,9 +880,8 @@ train_part34(model_init_fn, optimizer_init_fn)
 # 
 # You don't need to perform any hyperparameter tuning here, but you should see validation and test accuracies above 42% after training for one epoch.
 
-# In[ ]:
 
-
+print('\nTrain a Two Layer Network (Keras Sequential Model - Built-In Training Loop)')
 model = model_init_fn()
 model.compile(optimizer=tf.keras.optimizers.SGD(learning_rate=learning_rate),
               loss='sparse_categorical_crossentropy',
@@ -903,48 +906,49 @@ model.evaluate(X_test, y_test)
 # 
 # You don't need to perform any hyperparameter search, but you should achieve accuracy above 45% after training for one epoch.
 
-# In[ ]:
-
 
 def model_init_fn():
-    model = None
     ############################################################################
     # TODO: Construct a three-layer ConvNet using tf.keras.Sequential.         #
     ############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-    pass
-
+    input_shape = (32, 32, 3)
+    channel_1, channel_2, num_classes = 32, 16, 10
+    initialiser = tf.initializers.VarianceScaling(scale=2.0)
+    layers = [
+            tf.keras.layers.InputLayer(input_shape),
+            tf.keras.layers.Conv2D(channel_1, [5,5], [1,1], padding='SAME',
+                                    kernel_initializer=initialiser, activation=tf.nn.relu),  
+            tf.keras.layers.Conv2D(channel_2, [3,3], [1,1], padding='SAME',
+                                    kernel_initializer=initialiser, activation=tf.nn.relu),  
+            tf.keras.layers.Dense(num_classes, kernel_initializer=initialiser),
+            tf.keras.layers.Flatten(),
+            tf.keras.layers.Softmax()
+    ]
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ############################################################################
     #                            END OF YOUR CODE                              #
     ############################################################################
-    return model
+    return tf.keras.Sequential(layers)
 
 learning_rate = 5e-4
 def optimizer_init_fn():
-    optimizer = None
     ############################################################################
     # TODO: Complete the implementation of model_fn.                           #
     ############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-    pass
-
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ############################################################################
     #                           END OF YOUR CODE                               #
     ############################################################################
-    return optimizer
+    return tf.keras.optimizers.SGD(learning_rate=learning_rate, momentum=0.9, nesterov=True) 
 
+print('\nTrain a Three Layer Network (Keras Sequential Model - Custom Training Loop)')
 train_part34(model_init_fn, optimizer_init_fn)
 
 
 # We will also train this model with the built-in training loop APIs provided by TensorFlow.
-
-# In[ ]:
-
-
+print('\nTrain a Three Layer Network (Keras Sequential Model - Built-In Training Loop)')
 model = model_init_fn()
 model.compile(optimizer='sgd',
               loss='sparse_categorical_crossentropy',
@@ -968,8 +972,6 @@ model.evaluate(X_test, y_test)
 #  4. Models with non-sequential data flows (e.g. residual connections)
 # 
 # Writing a model with Functional API requires us to create a `tf.keras.Model` instance and explicitly write input tensors and output tensors for this model. 
-
-# In[ ]:
 
 
 def two_layer_fc_functional(input_shape, hidden_size, num_classes):  
@@ -1005,8 +1007,6 @@ test_two_layer_fc_functional()
 # 
 # You don't need to perform any hyperparameter tuning here, but you should see validation accuracies above 40% after training for one epoch.
 
-# In[ ]:
-
 
 input_shape = (32, 32, 3)
 hidden_size, num_classes = 4000, 10
@@ -1018,6 +1018,7 @@ def model_init_fn():
 def optimizer_init_fn():
     return tf.keras.optimizers.SGD(learning_rate=learning_rate)
 
+print('\nTrain a Two Layer Network (Keras Functional API)')
 train_part34(model_init_fn, optimizer_init_fn)
 
 
@@ -1064,8 +1065,6 @@ train_part34(model_init_fn, optimizer_init_fn)
 #   
 # ### Have fun and happy training! 
 
-# In[ ]:
-
 
 class CustomConvNet(tf.keras.Model):
     def __init__(self):
@@ -1111,9 +1110,3 @@ def optimizer_init_fn():
 
 train_part34(model_init_fn, optimizer_init_fn, num_epochs=num_epochs, is_training=True)
 
-
-# ## Describe what you did 
-# 
-# In the cell below you should write an explanation of what you did, any additional features that you implemented, and/or any graphs that you made in the process of training and evaluating your network.
-
-# TODO: Tell us what you did
