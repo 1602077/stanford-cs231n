@@ -469,8 +469,6 @@ def check_accuracy(dset, x, model_fn, params):
 # [1] He et al, *Delving Deep into Rectifiers: Surpassing Human-Level Performance on ImageNet Classification
 # *, ICCV 2015, https://arxiv.org/abs/1502.01852
 
-# In[ ]:
-
 
 def create_matrix_with_kaiming_normal(shape):
     if len(shape) == 2:
@@ -508,7 +506,9 @@ def two_layer_fc_init():
     return [w1, w2]
 
 learning_rate = 1e-2
-train_part2(two_layer_fc, two_layer_fc_init, learning_rate)
+
+# UNCOMMENT BEFORE FINAL SUBMISSION
+#train_part2(two_layer_fc, two_layer_fc_init, learning_rate)
 
 
 # ### Barebones TensorFlow: Train a three-layer ConvNet
@@ -561,7 +561,8 @@ def three_layer_convnet_init():
     return (conv_w1, conv_b1, conv_w2, conv_b2, fc_w, fc_b)
 
 learning_rate = 3e-3
-train_part2(three_layer_convnet, three_layer_convnet_init, learning_rate)
+# UNCOMMENT BEFORE FINAL SUBMISSION
+#train_part2(three_layer_convnet, three_layer_convnet_init, learning_rate)
 
 
 # # Part III: Keras Model Subclassing API
@@ -634,7 +635,7 @@ test_TwoLayerFC()
 # 
 # https://www.tensorflow.org/versions/r2.0/api_docs/python/tf/keras/layers/Dense
 
-# In[ ]:
+print('\nThree Layer Convet (Keras Implementation) \n')
 
 
 class ThreeLayerConvNet(tf.keras.Model):
@@ -645,24 +646,36 @@ class ThreeLayerConvNet(tf.keras.Model):
         # should instantiate layer objects to be used in the forward pass.     #
         ########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-        pass
-
+        initialiser = tf.initializers.VarianceScaling(scale=2.0)
+        self.conv1 = tf.keras.layers.Conv2D(channel_1, [5,5], [1,1], padding='VALID',
+                                            kernel_initializer=initialiser, activation=tf.nn.relu)   
+        self.conv2 = tf.keras.layers.Conv2D(channel_2, [3,3], [1,1], padding='VALID',
+                                            kernel_initializer=initialiser, activation=tf.nn.relu)   
+        self.fc = tf.keras.layers.Dense(num_classes, kernel_initializer=initialiser)
+        self.flatten = tf.keras.layers.Flatten()
+        self.softmax = tf.keras.layers.Softmax()
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ########################################################################
         #                           END OF YOUR CODE                           #
         ########################################################################
         
     def call(self, x, training=False):
-        scores = None
         ########################################################################
         # TODO: Implement the forward pass for a three-layer ConvNet. You      #
         # should use the layer objects defined in the __init__ method.         #
         ########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+        padding1 = tf.constant([[0,0], [2,2], [2,2], [0,0]])
+        x1 = tf.pad(x, padding1, 'CONSTANT')
+        conv1 = self.conv1(x1)   
 
-        pass
+        padding2 = tf.constant([[0,0], [1,1], [1,1], [0,0]])
+        x2 = tf.pad(conv1, padding2, 'CONSTANT')
+        conv2 = self.conv2(x2)
 
+        x3 = self.flatten(conv2)
+        fc1 = self.fc(x3)
+        scores = self.softmax(fc1)
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ########################################################################
         #                           END OF YOUR CODE                           #
@@ -671,8 +684,6 @@ class ThreeLayerConvNet(tf.keras.Model):
 
 
 # Once you complete the implementation of the `ThreeLayerConvNet` above you can run the following to ensure that your implementation does not crash and produces outputs of the expected shape.
-
-# In[ ]:
 
 
 def test_ThreeLayerConvNet():    
@@ -694,8 +705,6 @@ test_ThreeLayerConvNet()
 # 
 # TensorFlow 2.0 ships with easy-to-use built-in metrics under `tf.keras.metrics` module. Each metric is an object, and we can use `update_state()` to add observations and `reset_state()` to clear all observations. We can get the current result of a metric by calling `result()` on the metric object.
 
-# In[ ]:
-
 
 def train_part34(model_init_fn, optimizer_init_fn, num_epochs=1, is_training=False):
     """
@@ -711,7 +720,7 @@ def train_part34(model_init_fn, optimizer_init_fn, num_epochs=1, is_training=Fal
       optimizer = optimizer_init_fn()
     - num_epochs: The number of epochs to train for
     
-    Returns: Nothing, but prints progress during trainingn
+    Returns: Nothing, but prints progress during training
     """    
     with tf.device(device):
 
@@ -773,8 +782,6 @@ def train_part34(model_init_fn, optimizer_init_fn, num_epochs=1, is_training=Fal
 # 
 # You don't need to tune any hyperparameters here, but you should achieve validation accuracies above 40% after one epoch of training.
 
-# In[ ]:
-
 
 hidden_size, num_classes = 4000, 10
 learning_rate = 1e-2
@@ -797,41 +804,32 @@ train_part34(model_init_fn, optimizer_init_fn)
 # 
 # You don't need to perform any hyperparameter tuning, but you should achieve validation accuracies above 50% after training for one epoch.
 
-# In[ ]:
-
 
 learning_rate = 3e-3
 channel_1, channel_2, num_classes = 32, 16, 10
 
 def model_init_fn():
-    model = None
     ############################################################################
     # TODO: Complete the implementation of model_fn.                           #
     ############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-    pass
-
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ############################################################################
     #                           END OF YOUR CODE                               #
     ############################################################################
-    return model
+    return ThreeLayerConvNet(channel_1, channel_2, num_classes)
 
 def optimizer_init_fn():
-    optimizer = None
     ############################################################################
     # TODO: Complete the implementation of model_fn.                           #
     ############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
-
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ############################################################################
     #                           END OF YOUR CODE                               #
     ############################################################################
-    return optimizer
+    return tf.keras.optimizers.SGD(learning_rate, 0.9, nesterov=True)
 
 train_part34(model_init_fn, optimizer_init_fn)
 
