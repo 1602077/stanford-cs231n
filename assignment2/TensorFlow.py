@@ -60,21 +60,15 @@
 # 
 # For the purposes of this assignment we will still write our own code to preprocess the data and iterate through it in minibatches. The `tf.data` package in TensorFlow provides tools for automating this process, but working with this package adds extra complication and is beyond the scope of this notebook. However using `tf.data` can be much more efficient than the simple approach used in this notebook, so you should consider using it for your project.
 
-# In[ ]:
-
 
 import os
 import tensorflow as tf
 import numpy as np
 import math
 import timeit
-import matplotlib.pyplot as plt
-
-get_ipython().magic('matplotlib inline')
-
-
-# In[ ]:
-
+import matplotlib; matplotlib.use('agg')
+from matplotlib import pyplot as plt
+import pdb
 
 def load_cifar10(num_training=49000, num_validation=1000, num_test=10000):
     """
@@ -127,9 +121,6 @@ print('Test data shape: ', X_test.shape)
 print('Test labels shape: ', y_test.shape)
 
 
-# In[ ]:
-
-
 class Dataset(object):
     def __init__(self, X, y, batch_size, shuffle=False):
         """
@@ -158,8 +149,6 @@ val_dset = Dataset(X_val, y_val, batch_size=64, shuffle=False)
 test_dset = Dataset(X_test, y_test, batch_size=64)
 
 
-# In[ ]:
-
 
 # We can iterate through a dataset like this:
 for t, (x, y) in enumerate(train_dset):
@@ -167,17 +156,8 @@ for t, (x, y) in enumerate(train_dset):
     if t > 5: break
 
 
-# You can optionally **use GPU by setting the flag to True below**.
-# 
-# ## Colab Users
-# 
-# If you are using Colab, you need to manually switch to a GPU device. You can do this by clicking `Runtime -> Change runtime type` and selecting `GPU` under `Hardware Accelerator`. Note that you have to rerun the cells from the top since the kernel gets restarted upon switching runtimes.
-
-# In[ ]:
-
-
 # Set up some global variables
-USE_GPU = True
+USE_GPU = False
 
 if USE_GPU:
     device = '/device:GPU:0'
@@ -229,8 +209,6 @@ print('Using device: ', device)
 # 
 # **NOTE**: TensorFlow and PyTorch differ on the default Tensor layout; TensorFlow uses N x H x W x C but PyTorch uses N x C x H x W.
 
-# In[ ]:
-
 
 def flatten(x):
     """    
@@ -242,9 +220,6 @@ def flatten(x):
     """
     N = tf.shape(x)[0]
     return tf.reshape(x, (N, -1))
-
-
-# In[ ]:
 
 
 def test_flatten():
@@ -266,8 +241,6 @@ test_flatten()
 # After defining the network architecture in the `two_layer_fc` function, we will test the implementation by checking the shape of the output.
 # 
 # **It's important that you read and understand this implementation.**
-
-# In[ ]:
 
 
 def two_layer_fc(x, params):
@@ -296,9 +269,6 @@ def two_layer_fc(x, params):
     h = tf.nn.relu(tf.matmul(x, w1))  # Hidden layer: h has shape (N, H)
     scores = tf.matmul(h, w2)         # Compute scores of shape (N, C)
     return scores
-
-
-# In[ ]:
 
 
 def two_layer_fc_test():
@@ -332,9 +302,7 @@ two_layer_fc_test()
 # **HINT**: For convolutions: https://www.tensorflow.org/versions/r2.0/api_docs/python/tf/nn/conv2d; be careful with padding!
 # 
 # **HINT**: For biases: https://www.tensorflow.org/performance/xla/broadcasting
-
-# In[ ]:
-
+print('\nThree Layer Convnet:\n')
 
 def three_layer_convnet(x, params):
     """
@@ -363,9 +331,18 @@ def three_layer_convnet(x, params):
     # TODO: Implement the forward pass for the three-layer ConvNet.            #
     ############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+    padding1 = tf.constant([[0,0], [2,2], [2,2], [0,0]])
+    x = tf.pad(x, padding1, 'CONSTANT')
+    conv1 = tf.nn.conv2d(x, conv_w1, strides=[1,1,1,1],  padding='VALID') + conv_b1
+    relu1 = tf.nn.relu(conv1)
 
-    pass
+    padding2 = tf.constant([[0,0], [1,1], [1,1], [0,0]])
+    relu1 = tf.pad(relu1, padding2, 'CONSTANT')
+    conv2 = tf.nn.conv2d(relu1, conv_w2, strides=[1,1,1,1], padding='VALID') + conv_b2
+    relu2 = tf.nn.relu(conv2)
 
+    relu2 = flatten(relu2)
+    scores = tf.matmul(relu2, fc_w) + fc_b
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ############################################################################
     #                              END OF YOUR CODE                            #
@@ -376,8 +353,6 @@ def three_layer_convnet(x, params):
 # After defing the forward pass of the three-layer ConvNet above, run the following cell to test your implementation. Like the two-layer network, we run the graph on a batch of zeros just to make sure the function doesn't crash, and produces outputs of the correct shape.
 # 
 # When you run this function, `scores_np` should have shape `(64, 10)`.
-
-# In[ ]:
 
 
 def three_layer_convnet_test():
@@ -418,9 +393,6 @@ three_layer_convnet_test()
 # - For computing gradients of the loss with respect to the weights we'll use `tf.GradientTape` (useful for Eager execution):  https://www.tensorflow.org/versions/r2.0/api_docs/python/tf/GradientTape
 # 
 # - We'll mutate the weight values stored in a TensorFlow Tensor using `tf.assign_sub` ("sub" is for subtraction): https://www.tensorflow.org/api_docs/python/tf/assign_sub 
-# 
-
-# In[ ]:
 
 
 def training_step(model_fn, x, y, params, learning_rate):
@@ -436,9 +408,6 @@ def training_step(model_fn, x, y, params, learning_rate):
             w.assign_sub(learning_rate * grad_w)
                         
         return total_loss
-
-
-# In[ ]:
 
 
 def train_part2(model_fn, init_fn, learning_rate):
@@ -470,9 +439,6 @@ def train_part2(model_fn, init_fn, learning_rate):
         if t % print_every == 0:
             print('Iteration %d, loss = %.4f' % (t, loss))
             check_accuracy(val_dset, x_np, model_fn, params)
-
-
-# In[ ]:
 
 
 def check_accuracy(dset, x, model_fn, params):
@@ -523,8 +489,6 @@ def create_matrix_with_kaiming_normal(shape):
 # 
 # You don't need to tune any hyperparameters, but you should achieve validation accuracies above 40% after one epoch of training.
 
-# In[ ]:
-
 
 def two_layer_fc_init():
     """
@@ -560,8 +524,6 @@ train_part2(two_layer_fc, two_layer_fc_init, learning_rate)
 # 
 # You don't need to do any hyperparameter tuning, but you should see validation accuracies above 43% after one epoch of training.
 
-# In[ ]:
-
 
 def three_layer_convnet_init():
     """
@@ -584,14 +546,19 @@ def three_layer_convnet_init():
     # TODO: Initialize the parameters of the three-layer network.              #
     ############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+    conv_w1 = tf.Variable(create_matrix_with_kaiming_normal([5, 5, 3, 32]))
+    conv_w2 = tf.Variable(create_matrix_with_kaiming_normal([3, 3, 32, 16]))
 
-    pass
+    conv_b1 = tf.Variable(np.zeros([32]), dtype=tf.float32)
+    conv_b2 = tf.Variable(np.zeros([16]), dtype=tf.float32)
 
+    fc_w = tf.Variable(create_matrix_with_kaiming_normal([32*32*16, 10]))
+    fc_b = tf.Variable(np.zeros([10]), dtype=tf.float32)
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ############################################################################
     #                             END OF YOUR CODE                             #
     ############################################################################
-    return params
+    return (conv_w1, conv_b1, conv_w2, conv_b2, fc_w, fc_b)
 
 learning_rate = 3e-3
 train_part2(three_layer_convnet, three_layer_convnet_init, learning_rate)
